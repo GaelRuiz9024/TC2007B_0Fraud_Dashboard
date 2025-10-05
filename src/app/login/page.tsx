@@ -22,7 +22,7 @@ export default function LoginPage() {
       alert(`¡Inicio de sesión exitoso simulado! Correo: ${values.correo}`);
       setSubmitting(false);
 
-      router.replace('/reports');
+      router.replace('/dasboard/reports');
     }, 400);
   };
 
