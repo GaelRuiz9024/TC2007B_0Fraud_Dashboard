@@ -1,0 +1,16 @@
+.dashboardContainer {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f3f4f6;
+}
+
+@media (prefers-color-scheme: dark) {
+    .dashboardContainer {
+        background-color: #1f2937;
+    }
+}
+
+.dashboardMainContent {
+    flex-grow: 1;
+    padding: 2rem;
+}

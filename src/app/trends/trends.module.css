@@ -1,0 +1,155 @@
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .gridContainer {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.card {
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #1f2937;
+    }
+}
+
+.cardTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cardTitle {
+        color: white;
+    }
+}
+
+/* Dial de Porcentaje */
+.dialContainer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.dialCircle {
+    width: 6rem;
+    height: 6rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dialPercentageText {
+    color: white;
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.dialLabel {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+    .dialLabel {
+        color: white;
+    }
+}
+
+/* Gráfico Placeholder */
+.chartPlaceholder {
+    height: 16rem;
+    border-bottom: 1px solid #d1d5db;
+    border-left: 1px solid #d1d5db;
+    position: relative;
+    padding: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .chartPlaceholder {
+        border-color: #4b5563;
+    }
+}
+
+.chartAxisLabel {
+    position: absolute;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.chartAxisLabelX {
+    bottom: 0.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.chartAxisLabelY {
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    transform-origin: 0 0;
+    width: max-content;
+}
+
+.chartInnerPlaceholder {
+    position: absolute;
+    inset: 0;
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chartInnerPlaceholderSpan {
+    color: #9ca3af;
+}
+
+/* Leyenda del Gráfico de Dona */
+.legendContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legendColorSquare {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+}
+
+.legendLabel {
+    color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+    .legendLabel {
+        color: white;
+    }
+}
+
+.legendPercentage {
+    margin-left: auto;
+    font-weight: 600;
+}

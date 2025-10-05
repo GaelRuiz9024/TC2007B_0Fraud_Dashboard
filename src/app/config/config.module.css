@@ -1,0 +1,142 @@
+/* src/app/(dashboard)/config/config.module.css */
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .gridContainer {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.card {
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #1f2937;
+    }
+}
+
+.cardTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+    .cardTitle {
+        color: white;
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.formLabel {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .formLabel {
+        color: #e5e7eb;
+    }
+}
+
+.formInput, .formTextarea, .tableSelect {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: white;
+}
+
+@media (prefers-color-scheme: dark) {
+    .formInput, .formTextarea, .tableSelect {
+        background-color: #374151;
+        border-color: #4b5563;
+        color: white;
+    }
+}
+
+.switchContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.switchLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+    .switchLabel {
+        color: #e5e7eb;
+    }
+}
+
+.formButtonBase {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 600;
+    transition: background-color 0.15s ease-in-out;
+    border: none;
+    cursor: pointer;
+}
+
+.formButtonEnabled {
+    background-color: var(--color-primary-blue);
+}
+
+.formButtonEnabled:hover {
+    background-color: var(--color-primary-blue-hover);
+}
+
+.formButtonDisabled {
+    background-color: #93c5fd;
+    cursor: not-allowed;
+}
+
+.tableActionLink {
+    color: var(--color-primary-blue);
+    cursor: pointer;
+    text-decoration: none;
+    background: none;
+    border: none;
+}
+
+.tableActionLink:hover {
+    color: var(--color-primary-blue-hover);
+}
+
+.tableDeleteButton {
+    color: #dc2626;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.tableDeleteButton:hover {
+    color: #991b1b;
+}

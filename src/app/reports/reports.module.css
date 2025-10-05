@@ -1,0 +1,179 @@
+/* Estilos para la página de reportes y estilos de tabla reutilizables */
+
+.pageContainer {
+    margin-bottom: 2rem;
+}
+
+.pageTitle {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 2rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .pageTitle {
+        color: white;
+    }
+}
+
+/* Filtros */
+.filtersContainer {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+    .filtersContainer {
+        background-color: #1f2937;
+    }
+}
+
+.filterInputContainer {
+    position: relative;
+    flex: 1;
+}
+
+.filterInput {
+    width: 100%;
+    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+    .filterInput {
+        background-color: #374151;
+        border-color: #4b5563;
+        color: white;
+    }
+}
+
+.filterIcon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+
+/* Tablas (Estilos reutilizables en reports y config) */
+.tableContainer {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    margin-top: 2rem;
+    overflow: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+    .tableContainer {
+        background-color: #1f2937;
+    }
+}
+
+.tableTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #1f2937;
+}
+
+@media (prefers-color-scheme: dark) {
+    .tableTitle {
+        border-bottom-color: #374151;
+        color: white;
+    }
+}
+
+.tableHeader th {
+    padding: 0.75rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #f9fafb;
+}
+
+@media (prefers-color-scheme: dark) {
+    .tableHeader th {
+        background-color: #374151;
+        color: #d1d5db;
+    }
+}
+
+.tableRow {
+    border-bottom: 1px solid #e5e7eb;
+}
+@media (prefers-color-scheme: dark) {
+    .tableRow {
+        border-bottom-color: #374151;
+    }
+}
+
+.tableDataCell {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.dataPrimary {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+@media (prefers-color-scheme: dark) {
+    .dataPrimary {
+        color: #f3f4f6;
+    }
+}
+
+.dataSecondary {
+    color: #6b7280;
+}
+
+@media (prefers-color-scheme: dark) {
+    .dataSecondary {
+        color: #9ca3af;
+    }
+}
+
+/* Estilos Específicos de Reportes */
+.photoCell {
+    width: 5rem;
+}
+
+.photoPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 4rem;
+    width: 4rem;
+    background-color: #e5e7eb;
+    border-radius: 0.5rem;
+}
+
+.infoButton {
+    color: white;
+    background-color: var(--color-primary-blue);
+    padding: 0.5rem;
+    border-radius: 9999px;
+    transition: background-color 0.15s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    border: none;
+    cursor: pointer;
+}
+
+.infoButton:hover {
+    background-color: var(--color-primary-blue-hover);
+}

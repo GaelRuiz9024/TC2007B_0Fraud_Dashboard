@@ -1,0 +1,41 @@
+.switchLabel {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.switchInput {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.switchDotContainer {
+    position: relative;
+    width: 2.5rem;
+    height: 1.5rem;
+}
+.switchTrack {
+    display: block;
+    background-color: #4b5563;
+    width: 2.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    transition: background-color 0.15s;
+}
+.switchInput:checked + .switchTrack {
+    background-color: var(--color-primary-blue);
+}
+.switchDot {
+    position: absolute;
+    left: 0.25rem;
+    top: 0.25rem;
+    background-color: white;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    transition: transform 0.15s, background-color 0.15s;
+}
+.switchInput:checked ~ .switchDot {
+    transform: translateX(1rem);
+    background-color: white;
+}
