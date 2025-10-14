@@ -10,6 +10,13 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+.tableWrapper {
+    max-height: 200px; /* Altura máxima fija */
+    overflow-y: auto;  /* Habilitar la barra de desplazamiento */
+    position: relative;
+    /* Padding inferior para que no se oculte la última fila tras la barra */
+    padding-bottom: 1px; 
+}
 
 .card {
     padding: 1.5rem;

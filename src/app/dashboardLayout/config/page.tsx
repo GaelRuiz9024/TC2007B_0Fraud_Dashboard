@@ -6,7 +6,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import SwitchComponent from '@/components/switch/Switch'; 
 import styles from './config.module.css';
-import reportStyles from '../reports/reports.module.css';
+import reportStyles from '../reports/reports.module.css'; // Importa estilos necesarios, incluyendo .tableWrapper
 import { api } from '@/lib/api'; 
 import { Category, User } from '@/lib/types'; 
 
@@ -30,9 +30,8 @@ export default function ConfigPage() {
   // --- Funciones de Carga de Datos ---
   const fetchCategories = useCallback(async () => {
     try {
-      // 🚨 LLAMADA A LA API
       const response = await api.get('/admin/categories'); 
-      setCategories(response.data.filter((c: Category) => c.activa === 1 || c.activa === 0)); // Filtra por categorías activas e inactivas
+      setCategories(response.data.filter((c: Category) => c.activa === 1 || c.activa === 0));
     } catch (error) {
       console.error('Error al cargar categorías:', error);
     }
@@ -40,9 +39,8 @@ export default function ConfigPage() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      // 🚨 LLAMADA A LA API
       const response = await api.get('/admin/user/list'); 
-      setUsers(response.data.filter((user: any) => user.activo === 1)); // Solo mostrar usuarios activos (no eliminados)
+      setUsers(response.data); 
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
     }
@@ -59,7 +57,6 @@ export default function ConfigPage() {
     setStatus(undefined);
 
     try {
-      // 🚨 LLAMADA A LA API
       await api.post('/admin/categories', { 
         nombre: values.nombre,
         descripcion: values.descripcion,
@@ -84,7 +81,6 @@ export default function ConfigPage() {
     }
 
     try {
-        // 🚨 LLAMADA A LA API
         await api.put(`/admin/categories/${id}`, { activa: newActiva }); 
         alert(`Categoría actualizada a ${newStatus}`);
         fetchCategories(); 
@@ -100,7 +96,6 @@ export default function ConfigPage() {
         return;
     }
     try {
-      // 🚨 LLAMADA A LA API
       await api.put(`/admin/user/${userId}/role`, { idRol: newRolId }); 
       alert(`Rol de usuario ${userId} actualizado a ${roleName}`);
       await fetchUsers(); 
@@ -114,7 +109,6 @@ export default function ConfigPage() {
         return;
     }
     try {
-      // 🚨 LLAMADA A LA API
       await api.delete(`/admin/user/${userId}`); 
       alert(`Usuario ${userId} eliminado (desactivado)`);
       await fetchUsers(); 
@@ -139,7 +133,7 @@ export default function ConfigPage() {
       <h1 className={reportStyles.pageTitle}>Configuración</h1>
 
       <div className={styles.gridContainer}>
-        {/* Crear Categoría (Formulario) */}
+        {/* Crear Categoría (Formulario Reestablecido) */}
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Crear categoría</h2>
           <Formik
@@ -190,32 +184,36 @@ export default function ConfigPage() {
         {/* Categorías Existentes (Tabla) */}
         <div className={reportStyles.tableContainer}>
           <h2 className={styles.cardTitle} style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>Categorías existentes</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead className={reportStyles.tableHeader}>
-              <tr>
-                {['ID', 'Nombre', 'Estado', 'Acciones'].map((header) => (
-                  <th key={header} className={reportStyles.tableHeaderCell}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id} className={reportStyles.tableRow}>
-                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{category.id}</td>
-                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataPrimary}`} style={{ fontWeight: 500 }}>{category.nombre}</td>
-                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{getCategoryStatus(category.activa)}</td>
-                  <td className={reportStyles.tableDataCell} style={{ textAlign: 'right', fontWeight: 500 }}>
-                    <button 
-                        className={styles.tableActionLink}
-                        onClick={() => handleUpdateCategory(category.id, category.activa)}
-                    >
-                        {category.activa === 1 ? 'Desactivar' : 'Activar'}
-                    </button>
-                  </td>
+          
+          {/* ✅ APLICAR SCROLL: tableWrapper (Aplica max-height: 400px y overflow-y: auto) */}
+          <div className={reportStyles.tableWrapper}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead className={reportStyles.tableHeader}>
+                <tr>
+                  {['ID', 'Nombre', 'Estado', 'Acciones'].map((header) => (
+                    <th key={header} className={reportStyles.tableHeaderCell}>{header}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {categories.map((category) => (
+                  <tr key={category.id} className={reportStyles.tableRow}>
+                    <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{category.id}</td>
+                    <td className={`${reportStyles.tableDataCell} ${reportStyles.dataPrimary}`} style={{ fontWeight: 500 }}>{category.nombre}</td>
+                    <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{getCategoryStatus(category.activa)}</td>
+                    <td className={reportStyles.tableDataCell} style={{ textAlign: 'right', fontWeight: 500 }}>
+                      <button 
+                          className={styles.tableActionLink}
+                          onClick={() => handleUpdateCategory(category.id, category.activa)}
+                      >
+                          {category.activa === 1 ? 'Desactivar' : 'Activar'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {categories.length === 0 && !isLoading && <p style={{ padding: '1rem' }}>No hay categorías.</p>}
         </div>
       </div>
@@ -223,44 +221,48 @@ export default function ConfigPage() {
       {/* Manejo de Usuarios y Roles (Tabla) */}
       <div className={reportStyles.tableContainer} style={{ gridColumn: 'span 2 / span 2', marginTop: '1.5rem' }}>
         <h2 className={styles.cardTitle} style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>Manejo de usuarios y roles</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead className={reportStyles.tableHeader}>
-            <tr>
-              {['Id', 'Correo', 'Nombre', 'Rol', 'Modificar rol', 'Acciones'].map((header) => (
-                <th key={header} className={reportStyles.tableHeaderCell}>{header}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className={reportStyles.tableRow}>
-                <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{user.id}</td>
-                <td className={`${reportStyles.tableDataCell} ${reportStyles.dataPrimary}`}>{user.correo}</td>
-                <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{user.nombre}</td>
-                <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{getRoleName(user.idRol)}</td>
-                <td className={reportStyles.tableDataCell}>
-                  <select 
-                    className={styles.tableSelect}
-                    value={user.idRol}
-                    onChange={(e) => handleUpdateRole(user.id, Number(e.target.value))}
-                  >
-                    {ROLES.map(role => (
-                        <option key={role.id} value={role.id}>{role.name}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className={reportStyles.tableDataCell} style={{ textAlign: 'right', fontWeight: 500 }}>
-                  <button 
-                    className={styles.tableDeleteButton}
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    Eliminar
-                  </button>
-                </td>
+        
+        {/* ✅ APLICAR SCROLL: tableWrapper */}
+        <div className={reportStyles.tableWrapper}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead className={reportStyles.tableHeader}>
+              <tr>
+                {['Id', 'Correo', 'Nombre', 'Rol', 'Modificar rol', 'Acciones'].map((header) => (
+                  <th key={header} className={reportStyles.tableHeaderCell}>{header}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className={reportStyles.tableRow}>
+                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{user.id}</td>
+                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataPrimary}`}>{user.correo}</td>
+                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{user.nombre}</td>
+                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{getRoleName(user.idRol)}</td>
+                  <td className={reportStyles.tableDataCell}>
+                    <select 
+                      className={styles.tableSelect}
+                      value={user.idRol}
+                      onChange={(e) => handleUpdateRole(user.id, Number(e.target.value))}
+                    >
+                      {ROLES.map(role => (
+                          <option key={role.id} value={role.id}>{role.name}</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className={reportStyles.tableDataCell} style={{ textAlign: 'right', fontWeight: 500 }}>
+                    <button 
+                      className={styles.tableDeleteButton}
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {users.length === 0 && !isLoading && <p style={{ padding: '1rem' }}>No hay usuarios para mostrar.</p>}
       </div>
     </div>

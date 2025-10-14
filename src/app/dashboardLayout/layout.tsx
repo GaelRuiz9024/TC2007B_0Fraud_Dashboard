@@ -1,9 +1,8 @@
 // gaelruiz9024/tc2007b_0fraud_dashboard/src/app/dashboardLayout/DashboardLayout.tsx
 'use client'; 
 import Sidebar from '@/components/sidebar/Sidebar';
-import React, { useEffect } from 'react'; // Importar useEffect
+import React, { useEffect } from 'react';
 import styles from './dashboardLayout.module.css';
-// CAMBIO: Usar el nuevo Context
 import { useAuth } from '@/context/AuthContext'; 
 import { useRouter } from 'next/navigation';
 
@@ -15,17 +14,17 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // CAMBIO: Desestructurar del nuevo hook
-  const { isAuthenticated, loadingTokens, isAdmin, logout } = useAuth(); 
+  // Ahora el interceptor llama a logout(), solo necesitamos reaccionar al estado.
+  const { isAuthenticated, loadingTokens, isAdmin } = useAuth(); 
   const router = useRouter();
 
   useEffect(() => {
+    // Si la carga terminó y no es admin, redirigir. 
+    // El logout ya es llamado por el interceptor si el token falla.
     if (!loadingTokens && (!isAuthenticated || !isAdmin)) {
-        // Redirigir si no está autenticado O si no tiene el rol de administrador (idRol: 1)
-        logout(); // Limpiar tokens por si acaso (ej. token de usuario normal)
         router.replace('/login');
     }
-  }, [loadingTokens, isAuthenticated, isAdmin, router, logout]);
+  }, [loadingTokens, isAuthenticated, isAdmin, router]);
 
 
   if (loadingTokens) {
@@ -36,7 +35,6 @@ export default function DashboardLayout({
     );
   }
 
-  // Renderizar el contenido SÓLO si está cargado Y es admin
   if (isAuthenticated && isAdmin) {
     return (
       <div className={styles.dashboardContainer}>

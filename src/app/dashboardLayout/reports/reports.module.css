@@ -1,4 +1,4 @@
-/* Estilos para la página de reportes y estilos de tabla reutilizables */
+/* src/app/dashboardLayout/reports/reports.module.css */
 
 .pageContainer {
     margin-bottom: 2rem;
@@ -19,12 +19,14 @@
 
 /* Filtros */
 .filtersContainer {
-    display: flex;
-    gap: 1rem;
+    display: flex; 
+    align-items: center; 
+    gap: 1rem; /* Espacio entre los elementos */
     padding: 1rem;
     background-color: white;
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap; 
 }
 
 @media (prefers-color-scheme: dark) {
@@ -33,14 +35,19 @@
     }
 }
 
+/* Contenedor para ID, Categoría, URL (los que contienen un input) */
 .filterInputContainer {
     position: relative;
-    flex: 1;
+    /* CLAVE: Crece uniformemente (1/4 del espacio) */
+    flex: 1 1 0; 
+    min-width: 150px; 
 }
 
+/* Estilo del input base */
 .filterInput {
-    width: 100%;
-    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+    width: 80%;
+    /* Mismo padding que el botón de switch para alinear la altura */
+    padding: 0.5rem 0.5rem 0.5rem 2.5rem; 
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
 }
@@ -60,14 +67,45 @@
     transform: translateY(-50%);
 }
 
+/* Contenedor del Switch de filtro (el que necesita igualar la estética del input) */
+.filterSwitchContainer {
+    display: flex;
+    align-items: center;
+    /* Alinear texto a la izquierda y switch a la derecha */
+    justify-content: space-between; 
+    
+    padding: 0.5rem 1rem; 
+    background-color: white;
+    border-radius: 0.5rem;
+    border: 1px solid #d1d5db;
+    height: 1.2rem; /* Altura forzada para coincidir con la altura del input (padding + altura de línea) */
+    
+    /* CLAVE: Crece uniformemente (1/4 del espacio) */
+    flex: 1 1 0; 
+    min-width: 150px;
+    font-size: 0.875rem; /* Tamaño de fuente para el texto del switch */
+}
 
-/* Tablas (Estilos reutilizables en reports y config) */
+@media (prefers-color-scheme: dark) {
+    .filterSwitchContainer {
+        background-color: #374151;
+        color: #e5e7eb;
+        border-color: #4b5563;
+    }
+}
+
+
+/* Tablas */
+
+/* Contenedor que aplica el scroll (La tabla en sí) */
 .tableContainer {
     background-color: white;
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    margin-top: 2rem;
+    /* Mantener el margen para separar de los filtros */
+    margin-top: 2rem; 
     overflow: hidden;
+    /* La scrollbar debe ir dentro de un wrapper */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -75,6 +113,16 @@
         background-color: #1f2937;
     }
 }
+
+/* Contenedor que aplica el scroll (Wrapper usado en reports/page.tsx) */
+.tableWrapper {
+    max-height: 400px; /* Altura máxima fija */
+    overflow-y: auto;  /* Habilitar la barra de desplazamiento */
+    position: relative;
+    /* Padding inferior para que no se oculte la última fila tras la barra */
+    padding-bottom: 1px; 
+}
+
 
 .tableTitle {
     font-size: 1.25rem;
@@ -91,7 +139,13 @@
     }
 }
 
+/* Hace que el encabezado se mantenga visible al hacer scroll */
 .tableHeader th {
+    /* Clases originales, solo se añade la posición fija */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    
     padding: 0.75rem 1.5rem;
     text-align: left;
     font-size: 0.75rem;
@@ -102,6 +156,13 @@
     background-color: #f9fafb;
 }
 
+@media (prefers-color-scheme: dark) {
+    .tableHeader th {
+        background-color: #374151; 
+        color: #d1d5db;
+    }
+}
+/* ... (resto de estilos de tabla) ... */
 @media (prefers-color-scheme: dark) {
     .tableHeader th {
         background-color: #374151;

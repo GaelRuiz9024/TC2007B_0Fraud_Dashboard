@@ -3,9 +3,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname , useRouter } from 'next/navigation';
 import styles from './sidebar.module.css';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 const navItems = [
  { name: 'Reportes enviados', href: '/dashboardLayout/reports', icon: '/file.svg' },
@@ -16,7 +16,14 @@ const navItems = [
 export default function Sidebar() {
  const pathname = usePathname();
  const{ logout } = useAuth();
+ const router = useRouter(); 
 
+
+ const handleLogout = () => {
+    console.log('Cerrar sesión');
+    logout(); // Llama a la función del contexto para limpiar tokens
+    router.replace('/login'); // Redirige al usuario a la página de login
+  }
  return (
   <aside className={styles.aside}>
    {/* Sección del Logo/Título de la Aplicación */}
@@ -60,16 +67,17 @@ export default function Sidebar() {
    </nav>
 
    {/* Botón de Cerrar Sesión (Ahora usando la clase de enlace base) */}
-   <div className={styles.logoutSection}>
-    <button
-     onClick={() => { logout }}
-     className={`${styles.navLinkBase} ${styles.logoutButton}`} // Reutilizamos estilos de navLinkBase
-    >
-     {/* Usamos un div para simular el avatar con un background-image o clase de estilo */}
-     <div className={styles.avatar}>N</div>
-     <span>Cerrar sesión</span>
-    </button>
-   </div>
+    <div className={styles.logoutSection}>
+        <button
+          onClick={handleLogout} // <-- Llamar a la función handleLogout
+          className={`${styles.navLinkBase} ${styles.logoutButton}`}
+        >
+        <div className={styles.avatar}>N</div>
+        <span>Cerrar sesión</span>
+ 
+        </button>
+      </div>
+          
   </aside>
  );
 }

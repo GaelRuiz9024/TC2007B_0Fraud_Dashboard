@@ -2,8 +2,10 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/api";
+// 👈 Importar api y la nueva función setLogoutCallback
+import { api, setLogoutCallback } from "@/lib/api"; 
 import { UserProfile } from "@/lib/types";
+import { useRouter } from "next/navigation"; // Necesario para la redirección después del logout
 
 // --- Tipos Adaptados ---
 type Tokens = {
@@ -18,12 +20,13 @@ type AuthContextType = {
   login: (correo: string, contrasena: string) => Promise<void>;
   logout: () => void;
   loadingTokens: boolean;
-  tryRefreshAndFetchProfile: () => Promise<boolean>;
+  // Eliminamos tryRefreshAndFetchProfile ya que ahora es manejado por el interceptor
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// --- Funciones auxiliares ---
+// ... (Funciones auxiliares setTokens y clearTokens) ...
+
 const setTokens = (accessToken: string, refreshToken: string) => {
     if (typeof window === "undefined") return;
     localStorage.setItem('accessToken', accessToken);
@@ -38,10 +41,10 @@ const clearTokens = () => {
 
 // --- Provider Component ---
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter(); // Inicializar router
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loadingTokens, setLoadingTokens] = useState(true);
 
-  // Función para obtener el perfil del usuario autenticado (usa el token del interceptor)
   const fetchProfile = useCallback(async (): Promise<UserProfile | null> => {
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) return null;
@@ -50,76 +53,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const response = await api.get('/auth/profile');
         return response.data.profile as UserProfile;
     } catch (error) {
+        // Si falla aquí, significa que el token está expirado, el interceptor lo manejará o ya falló el refresh.
         return null;
     }
   }, []);
-
-  // Función para intentar refrescar el token si el de acceso falla
-  const tryRefreshAndFetchProfile = useCallback(async (): Promise<boolean> => {
-    setLoadingTokens(true);
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-        clearTokens();
-        setUser(null);
-        setLoadingTokens(false);
-        return false;
-    }
-
-    try {
-        const response = await api.post('/auth/refresh', { refreshToken });
-        
-        // Asumiendo que el backend devuelve { accessToken: string }
-        setTokens(response.data.accessToken, refreshToken);
-        
-        const profile = await fetchProfile();
-        if (profile) {
-            setUser(profile);
-            setLoadingTokens(false);
-            return true;
-        } else {
-            clearTokens();
-            setUser(null);
-            setLoadingTokens(false);
-            return false;
-        }
-    } catch (error) {
-        clearTokens();
-        setUser(null);
-        setLoadingTokens(false);
-        return false;
-    }
-  }, [fetchProfile]);
   
-  // Lógica de carga inicial: verificar tokens existentes
-  const initialLoad = useCallback(async () => {
+  // 👈 NUEVA FUNCIÓN DE LOGOUT CENTRAL (con redirección)
+  const logout = useCallback(() => {
+    clearTokens();
+    setUser(null);
+    router.replace('/login'); 
+  }, [router]);
+
+  // 👈 Función para cargar la sesión al inicio o después de un refresh/login
+  const loadSession = useCallback(async () => {
     setLoadingTokens(true);
     const accessToken = localStorage.getItem('accessToken');
     
     if (accessToken) {
-        let profile = await fetchProfile();
+        const profile = await fetchProfile();
         if (profile) {
             setUser(profile);
             setLoadingTokens(false);
             return;
-        } else {
-            // Intenta refrescar si el access token es inválido/expirado
-            await tryRefreshAndFetchProfile();
-            return;
-        }
+        } 
     }
     
-    // Si no hay token en localStorage, o el proceso de refresh/fetch falló
+    // Si no hay token o el perfil falla al cargar (interceptor no refrescó), limpiar sesión
     clearTokens();
     setUser(null);
     setLoadingTokens(false);
 
-  }, [fetchProfile, tryRefreshAndFetchProfile]);
+  }, [fetchProfile]);
 
 
+  // 👈 Efecto 1: Cargar la sesión al inicio
   useEffect(() => {
-    initialLoad();
-  }, [initialLoad]);
+    loadSession();
+  }, [loadSession]);
+
+  // 👈 Efecto 2: Inyectar la función de logout en el interceptor de Axios
+  useEffect(() => {
+    setLogoutCallback(logout);
+  }, [logout]);
 
 
   // --- Auth Actions ---
@@ -132,21 +108,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           contrasena,
         });
         
-        // El backend NestJS devuelve { accessToken, refreshToken }
         const tokens: Tokens = {
             accessToken: response.data.accessToken,
             refreshToken: response.data.refreshToken,
         };
         setTokens(tokens.accessToken, tokens.refreshToken);
         
-        // Obtener el perfil después de obtener los tokens
-        const profile = await fetchProfile();
-        if (profile) {
-            setUser(profile);
-        } else {
-            // Esto debería ser un error si el login fue exitoso pero el perfil falla
-            throw new Error("Perfil de usuario no encontrado después del login.");
-        }
+        // Forzar la carga del perfil con el nuevo token
+        await loadSession(); 
         
       } catch (error) {
         clearTokens();
@@ -156,13 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoadingTokens(false);
       }
     },
-    [fetchProfile]
+    [loadSession]
   );
 
-  const logout = useCallback(() => {
-    clearTokens();
-    setUser(null);
-  }, []);
 
   const isAuthenticated = !!user;
   const isAdmin = user?.idRol === 1;
@@ -175,7 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       loadingTokens,
-      tryRefreshAndFetchProfile
     }),
     [
       user,
@@ -184,7 +148,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       loadingTokens,
-      tryRefreshAndFetchProfile
     ]
   );
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>;
