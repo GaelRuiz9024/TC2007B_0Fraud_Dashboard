@@ -1,423 +1,273 @@
-// src/app/dashboardLayout/trends/page.tsx
+// gaelruiz9024/tc2007b_0fraud_dashboard/src/app/dashboardLayout/trends/page.tsx
 'use client';
-
-import React, { useEffect, useRef, useState } from 'react';
-import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import React, { useState, useEffect, useCallback } from 'react';
 import styles from './trends.module.css';
 import reportStyles from '../reports/reports.module.css';
+import { api } from '@/lib/api';
+// 👈 IMPORTAR EL TIPO HISTÓRICO
+import { ReportsByCategory, StatusPecentage, HistoricalReportData } from '@/lib/types'; 
 
-// Registrar todos los componentes de Chart.js
-Chart.register(...registerables);
+// 1. IMPORTAR Y REGISTRAR CHART.JS
+import { Line, Doughnut } from 'react-chartjs-2';
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  PointElement, 
+  LineElement, 
+  Title, 
+  Tooltip, 
+  Legend, 
+  ArcElement,
+  ChartData
+} from 'chart.js';
 
-// ========== TIPOS PARA LOS DATOS ==========
-interface CategoryData {
-    percentage: number;
-    label: string;
-    color: string;
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement);
+
+// Colores consistentes para los gráficos
+const COLORS = [
+  '#ff4d4d', // Rojo/Phishing
+  '#8884d8', // Morado/Cripto
+  '#ffa500', // Naranja/Productos Falsos
+  '#32c7a8', // Turquesa/Estafas Web
+  '#ff3399', // Rosa/Fraude Telefónico
+  '#0088fe', 
+];
+
+interface AnalyticsData {
+    topCategories: (ReportsByCategory & { color: string, percentage: number })[];
+    reportApproval: (StatusPecentage & { color: string })[];
+    historicalTrends: HistoricalReportData[]; // 👈 AÑADIR DATOS HISTÓRICOS AL ESTADO
 }
 
-interface LineChartData {
-    labels: string[];
-    datasets: {
-        label: string;
-        data: number[];
-        color: string;
-    }[];
-}
-
-interface DonutChartData {
-    labels: string[];
-    data: number[];
-    colors: string[];
-}
-
-// ========== COMPONENTE: ANILLO DE PORCENTAJE CON CHART.JS ==========
-const PercentageDial = ({ percentage, label, color }: CategoryData) => {
-    const chartRef = useRef<HTMLCanvasElement>(null);
-    const chartInstance = useRef<Chart | null>(null);
-
-    useEffect(() => {
-        if (!chartRef.current) return;
-
-        // Destruir gráfica anterior si existe
-        if (chartInstance.current) {
-            chartInstance.current.destroy();
-        }
-
-        const ctx = chartRef.current.getContext('2d');
-        if (!ctx) return;
-
-        // Crear degradado
-        const gradient = ctx.createLinearGradient(0, 0, 100, 100);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, lightenColor(color, 50));
-
-        const config: ChartConfiguration<'doughnut'> = {
-            type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [percentage, 100 - percentage],
-                    backgroundColor: [gradient, 'rgba(255, 255, 255, 0.1)'],
-                    borderWidth: 0,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                cutout: '70%',
-                rotation: -90,
-                circumference: 360,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false }
-                }
-            }
-        };
-
-        chartInstance.current = new Chart(ctx, config);
-
-        return () => {
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-            }
-        };
-    }, [percentage, color]);
-
-    return (
-        <div className={styles.dialContainer}>
-            <div className={styles.dialCircle} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                <canvas ref={chartRef}></canvas>
-                <span className={styles.dialPercentageText} style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    fontSize: '1.25rem',
-                    fontWeight: 'bold'
-                }}>{percentage}%</span>
-            </div>
-            <p className={styles.dialLabel}>{label}</p>
-        </div>
-    );
+const PercentageDial = ({ percentage, label, color }: { percentage: number, label: string, color: string }) => {
+  return (
+    <div className={styles.dialContainer}>
+      <div className={styles.dialCircle} style={{ backgroundColor: color, filter: 'brightness(0.9)' }}>
+        <span className={styles.dialPercentageText}>{percentage.toFixed(0)}%</span>
+      </div>
+      <p className={styles.dialLabel}>{label}</p>
+    </div>
+  );
 };
 
-// ========== COMPONENTE: GRÁFICO DE LÍNEAS CON CHART.JS ==========
-const LineChartComponent = ({ data }: { data: LineChartData }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const chartRef = useRef<HTMLCanvasElement>(null);
-    const chartInstance = useRef<Chart | null>(null);
+// 👈 FUNCIÓN CLAVE: Transforma los datos del backend al formato de Chart.js (pivotear)
+const processHistoricalData = (rawData: HistoricalReportData[]): ChartData<"line"> => {
+    // 1. Obtener todas las fechas únicas (labels) y ordenarlas
+    const dates = Array.from(new Set(rawData.map(d => d.date))).sort();
 
-    useEffect(() => {
-        if (!chartRef.current || !containerRef.current) return;
+    // 2. Obtener todas las categorías únicas
+    const categories = Array.from(new Set(rawData.map(d => d.categoryName)));
 
-        // IMPORTANTE: Destruir la instancia anterior antes de crear una nueva
-        if (chartInstance.current) {
-            chartInstance.current.destroy();
-            chartInstance.current = null;
-        }
+    // 3. Mapear cada categoría a un dataset
+    const datasets = categories.map((category, index) => {
+        // Mapea los datos recibidos a un objeto Map { fecha: conteo } para acceso rápido
+        const categoryDataMap = new Map(
+            rawData
+                .filter(d => d.categoryName === category)
+                .map(d => [d.date, d.reportCount])
+        );
+        
+        // Generar puntos de datos: si no hay conteo para esa fecha/categoría, es 0
+        const dataPoints = dates.map(date => categoryDataMap.get(date) || 0);
 
-        const ctx = chartRef.current.getContext('2d');
-        if (!ctx) return;
-
-        const datasets = data.datasets.map(dataset => ({
-            label: dataset.label,
-            data: dataset.data,
-            borderColor: dataset.color,
-            backgroundColor: dataset.color,
+        return {
+            label: category,
+            data: dataPoints,
+            borderColor: COLORS[index % COLORS.length],
+            backgroundColor: 'transparent',
             tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            borderWidth: 3,
-        }));
-
-        const config: ChartConfiguration<'line'> = {
-            type: 'line',
-            data: {
-                labels: data.labels,
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                resizeDelay: 0,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        },
-                        ticks: {
-                            color: '#9CA3AF'
-                        },
-                        title: {
-                            display: true,
-                            text: 'No. incidencias',
-                            color: '#9CA3AF'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            color: '#9CA3AF'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Semanas',
-                            color: '#9CA3AF'
-                        }
-                    }
-                }
-            }
+            pointRadius: 5, 
+            pointBackgroundColor: COLORS[index % COLORS.length], // Puntos visibles
         };
+    });
 
-        chartInstance.current = new Chart(ctx, config);
-
-        // Cleanup function
-        return () => {
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-                chartInstance.current = null;
-            }
-        };
-    }, [data]);
-
-    return (
-        <div 
-            ref={containerRef}
-            style={{ 
-                position: 'relative', 
-                width: '100%', 
-                height: '250px',
-                maxHeight: '250px',
-                overflow: 'hidden'
-            }}
-        >
-            <canvas ref={chartRef}></canvas>
-        </div>
-    );
+    return {
+        // Formatear las fechas para ser más amigables (ej. '01/Oct')
+        labels: dates.map(date => {
+            const [, month, day] = date.split('-');
+            return `${day}/${month}`;
+        }),
+        datasets: datasets,
+    };
 };
 
-// ========== COMPONENTE: GRÁFICO DE DONA CON CHART.JS ==========
-const DonutChartComponent = ({ data }: { data: DonutChartData }) => {
-    const chartRef = useRef<HTMLCanvasElement>(null);
-    const chartInstance = useRef<Chart | null>(null);
+// Función para mapear datos del API al formato Doughnut de Chart.js
+const getDoughnutChartData = (reportApproval: (StatusPecentage & { color: string })[]) => {
+  return {
+    labels: reportApproval.map(item => item.status),
+    datasets: [
+      {
+        data: reportApproval.map(item => item.count), 
+        backgroundColor: reportApproval.map(item => item.color),
+        borderColor: reportApproval.map(item => item.color),
+        borderWidth: 1,
+      },
+    ],
+  };
+};
 
-    useEffect(() => {
-        if (!chartRef.current) return;
-
-        if (chartInstance.current) {
-            chartInstance.current.destroy();
+// Opciones de configuración para el gráfico de líneas (mantienen el estilo)
+const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            display: false, // Ocultar la leyenda de Chart.js
+        },
+    },
+    scales: {
+        y: {
+            title: {
+                display: true,
+                text: 'No. incidencias',
+                color: 'white', 
+            },
+            ticks: { color: 'white' },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            beginAtZero: true, // Empezar en cero
+        },
+        x: {
+            title: {
+                display: true,
+                text: 'Semanas / Días',
+                color: 'white',
+            },
+            ticks: { color: 'white' },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' }
         }
-
-        const ctx = chartRef.current.getContext('2d');
-        if (!ctx) return;
-
-        const config: ChartConfiguration<'doughnut'> = {
-            type: 'doughnut',
-            data: {
-                labels: data.labels,
-                datasets: [{
-                    data: data.data,
-                    backgroundColor: data.colors,
-                    borderWidth: 4,
-                    borderColor: '#2D3748',
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                cutout: '65%',
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                return `${label}: ${value}%`;
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        chartInstance.current = new Chart(ctx, config);
-
-        return () => {
-            if (chartInstance.current) {
-                chartInstance.current.destroy();
-            }
-        };
-    }, [data]);
-
-    return (
-        <div style={{ width: '8rem', height: '8rem' }}>
-            <canvas ref={chartRef}></canvas>
-        </div>
-    );
+    }
 };
 
-// ========== FUNCIÓN AUXILIAR: ACLARAR COLOR ==========
-const lightenColor = (color: string, percent: number): string => {
-    let num = parseInt(color.slice(1), 16);
-    let amt = Math.round(2.55 * percent);
-    let R = (num >> 16) + amt;
-    let B = (num >> 8 & 0x00FF) + amt;
-    let G = (num & 0x0000FF) + amt;
-    R = (R < 255 ? R : 255);
-    B = (B < 255 ? B : 255);
-    G = (G < 255 ? G : 255);
-    return `#${(G | (B << 8) | (R << 16)).toString(16).padStart(6, '0')}`;
-};
-
-// ========== COMPONENTE PRINCIPAL ==========
 export default function TrendsPage() {
-    // Estados para los datos (serán reemplazados por llamadas a API)
-    const [topCategories, setTopCategories] = useState<CategoryData[]>([
-        { percentage: 20, label: 'Phishing', color: '#ff4d4d' },
-        { percentage: 30, label: 'Cripto', color: '#8884d8' },
-        { percentage: 80, label: 'Productos falsos', color: '#ffa500' },
-        { percentage: 45, label: 'Estafas en sitios web', color: '#32c7a8' },
-        { percentage: 92, label: 'Fraude telefónico', color: '#ff3399' },
-    ]);
+  const [data, setData] = useState<AnalyticsData>({ 
+      topCategories: [], 
+      reportApproval: [],
+      historicalTrends: [], // 👈 ESTADO INICIAL VACÍO
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    const [lineChartData, setLineChartData] = useState<LineChartData>({
-        labels: ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7'],
-        datasets: [
-            { label: 'Phishing', data: [30, 40, 35, 50, 45, 60, 55], color: '#ff4d4d' },
-            { label: 'Cripto', data: [20, 25, 30, 28, 35, 32, 40], color: '#8884d8' },
-            { label: 'Productos falsos', data: [15, 22, 20, 25, 23, 27, 26], color: '#ffa500' },
-        ]
-    });
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [categoriesResponse, statusResponse, historicalResponse] = await Promise.all([
+        api.get<ReportsByCategory[]>('/admin/analytics/reports-by-category?limit=5'), 
+        api.get<StatusPecentage[]>('/admin/analytics/status-percentage'), 
+        api.get<HistoricalReportData[]>('/admin/analytics/historical-trends'), // 👈 CONSUMO DEL ENDPOINT HISTÓRICO
+      ]);
 
-    const [donutChartData, setDonutChartData] = useState<DonutChartData>({
-        labels: ['Aprobados', 'Rechazados', 'En revisión'],
-        data: [45, 35, 25],
-        colors: ['#ff3399', '#ffa500', '#8884d8']
-    });
+      const fetchedCategories = categoriesResponse.data;
+      const totalCategoryReports = fetchedCategories.reduce((sum, item) => sum + item.reportCount, 0);
 
-    // ========== LLAMADAS A API (Ejemplo) ==========
-    useEffect(() => {
-        // Aquí irían tus llamadas a los endpoints
-        const fetchData = async () => {
-            try {
-                // Ejemplo de llamada a API para Top 5 categorías
-                // const response = await fetch('/api/trends/top-categories');
-                // const data = await response.json();
-                // setTopCategories(data);
+      const topCategoriesWithPercentage = fetchedCategories.map((item, index) => ({
+          ...item,
+          color: COLORS[index % COLORS.length],
+          percentage: totalCategoryReports > 0 ? (item.reportCount / totalCategoryReports) * 100 : 0
+      }));
 
-                // Ejemplo de llamada a API para gráfico de líneas
-                // const lineResponse = await fetch('/api/trends/risk-categories');
-                // const lineData = await lineResponse.json();
-                // setLineChartData(lineData);
+      const reportApprovalWithColor = statusResponse.data.map((item, index) => ({
+        ...item,
+        color: COLORS[index % COLORS.length],
+      }));
+      
+      setData({
+        topCategories: topCategoriesWithPercentage,
+        reportApproval: reportApprovalWithColor,
+        historicalTrends: historicalResponse.data, // 👈 ALMACENAMIENTO DE DATOS
+      });
 
-                // Ejemplo de llamada a API para gráfico de dona
-                // const donutResponse = await fetch('/api/trends/report-approval');
-                // const donutData = await donutResponse.json();
-                // setDonutChartData(donutData);
+    } catch (err: any) {
+      console.error('Error fetching analytics:', err);
+      setError('No se pudieron cargar los datos de analítica. Verifique el backend y la consola.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-            } catch (error) {
-                console.error('Error fetching trends data:', error);
-            }
-        };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+  
+  if (isLoading) {
+    return <div className={reportStyles.pageContainer}><p>Cargando análisis de tendencias...</p></div>;
+  }
 
-        fetchData();
-    }, []);
+  if (error) {
+    return <div className={reportStyles.pageContainer}><p style={{ color: 'var(--color-red-error)' }}>Error: {error}</p></div>;
+  }
 
-    return (
-        <div className={reportStyles.pageContainer} style={{ paddingBottom: '1rem' }}>
-            <h1 className={reportStyles.pageTitle} style={{ marginBottom: '1rem' }}>Análisis de tendencias</h1>
+  // Preparar datos de gráficos
+  const doughnutData = getDoughnutChartData(data.reportApproval);
+  const lineChartData = processHistoricalData(data.historicalTrends); // 👈 USAR LA FUNCIÓN DE PROCESAMIENTO
 
-                <div className={styles.gridContainer} style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: '1fr 2fr',
-                    gridAutoRows: 'min-content',
-                    gap: '1rem',
-                    alignItems: 'start'
-                }}>
+  return (
+    <div className={reportStyles.pageContainer}>
+      <h1 className={reportStyles.pageTitle}>Análisis de tendencias</h1>
 
-                
-                {/* Top 5 Categorías de Fraude */}
-                <div className={styles.card} style={{ 
-                    gridColumn: '1 / 2', 
-                    gridRow: 'span 2',
-                    overflow: 'auto',
-                    backgroundColor: '#374151',
-                    padding: '1.25rem'
-                }}>
-                    <h2 className={styles.cardTitle} style={{ marginBottom: '1rem' }}>Top 5 categorías de fraude</h2>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {topCategories.map((category) => (
-                            <PercentageDial key={category.label} {...category} />
-                        ))}
-                    </div>
-                </div>
-
-                {/* Categorías de Riesgo (Gráfico de Líneas) */}
-                <div className={styles.card} style={{ 
-                    gridColumn: '2 / 3', 
-                    gridRow: '1 / 2',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    backgroundColor: '#374151',
-                    padding: '1.25rem'
-                }}>
-                    <h2 className={styles.cardTitle} style={{ marginBottom: '0.5rem' }}>Categorías de riesgo</h2>
-                    <div style={{ padding: '0.25rem 0' }}>
-                        <LineChartComponent data={lineChartData} />
-                    </div>
-                </div>
-
-                {/* Porcentaje de Reportes Aprobados */}
-                <div className={styles.card} style={{ 
-                    gridColumn: '2 / 3', 
-                    gridRow: '2 / 3',
-                    display: 'grid', 
-                    gridTemplateColumns: '1fr 1fr', 
-                    alignItems: 'center',
-                    backgroundColor: '#374151'
-                }}>
-                    <h2 className={styles.cardTitle} style={{ gridColumn: 'span 2 / span 2', marginBottom: '0.5rem' }}>
-                        Porcentaje de reportes aprobados
-                    </h2>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <DonutChartComponent data={donutChartData} />
-                    </div>
-
-                    <div className={styles.legendContainer}>
-                        {donutChartData.labels.map((label, index) => (
-                            <div key={label} className={styles.legendItem}>
-                                <span 
-                                    className={styles.legendColorSquare} 
-                                    style={{ backgroundColor: donutChartData.colors[index] }}
-                                ></span>
-                                <span className={styles.legendLabel}>{label}</span>
-                                <span 
-                                    className={styles.legendPercentage} 
-                                    style={{ color: donutChartData.colors[index] }}
-                                >
-                                    {donutChartData.data[index]}%
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+      <div className={styles.gridContainer}>
+        
+        {/* TARJETA IZQUIERDA (Top 5 - Ocupa 2 filas) */}
+        <div className={styles.card} style={{ gridColumn: 'span 1 / span 1', gridRow: 'span 2 / span 2' }}>
+          <h2 className={styles.cardTitle}>Top 5 categorías de fraude (Porcentaje Total)</h2>
+          <div style={{ margin: '1rem 0' }}>
+            {data.topCategories.length === 0 ? (
+                <p className={styles.dialLabel}>No hay datos de categorías.</p>
+            ) : (
+                data.topCategories.map((category) => (
+                    <PercentageDial 
+                        key={category.categoryName} 
+                        percentage={category.percentage} 
+                        label={`${category.categoryName} (${category.reportCount} reportes)`} 
+                        color={category.color} 
+                    />
+                ))
+            )}
+          </div>
         </div>
-    );
+        
+        {/* TARJETA SUPERIOR DERECHA (Gráfico de Líneas Histórico con Chart.js) */}
+        <div className={styles.card} style={{ gridColumn: 'span 2 / span 2' }}>
+          <h2 className={styles.cardTitle}>Categorías de riesgo (Histórico)</h2>
+          <div style={{ flexGrow: 1, minHeight: '18rem', position: 'relative' }}>
+            {data.historicalTrends.length === 0 ? (
+                 <div className={styles.chartInnerPlaceholder}><span className={styles.chartInnerPlaceholderSpan}>No hay datos históricos recientes (últimos 7 días).</span></div>
+            ) : (
+                <Line options={lineChartOptions} data={lineChartData} />
+            )}
+          </div>
+        </div>
+
+        {/* TARJETA INFERIOR DERECHA (Porcentaje de Reportes por Estado - Gráfico de Dona con Chart.js) */}
+        <div className={styles.card} style={{ gridColumn: 'span 2 / span 2' }}>
+          <h2 className={styles.cardTitle}>Porcentaje de reportes por estado</h2>
+          
+          {data.reportApproval.length === 0 ? (
+                <p>No hay datos de estado de reportes.</p>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', flexGrow: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: '10rem', height: '10rem' }}>
+                            <Doughnut data={doughnutData} options={{ maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+                        </div>
+                    </div>
+                    {/* Leyenda manual */}
+                    <div className={styles.legendContainer}>
+                      {data.reportApproval.map((item) => (
+                        <div key={item.status} className={styles.legendItem}>
+                          <span className={styles.legendColorSquare} style={{ backgroundColor: item.color }}></span>
+                          <span className={styles.legendLabel}>{item.status}</span>
+                          <span className={styles.legendPercentage} style={{ color: item.color }}>{item.percentage.toFixed(2)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                </div>
+            )
+          }
+
+        </div>
+      </div>
+    </div>
+  );
 }

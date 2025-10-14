@@ -44,3 +44,9 @@ export interface StatusPecentage {
   percentage: number;
   count: number;
 }
+
+export type HistoricalReportData = {
+    date: string; 
+    categoryName: string;
+    reportCount: number;
+}

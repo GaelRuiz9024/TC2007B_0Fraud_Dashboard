@@ -1,21 +1,16 @@
-// src/app/(dashboard)/reports/page.tsx
+// gaelruiz9024/tc2007b_0fraud_dashboard/src/app/dashboardLayout/reports/page.tsx
 'use client';
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './reports.module.css';
-import { Report } from '../../../lib/types';
-import { api } from '../../../lib/api';
+import { api } from '@/lib/api';
+import { Report } from '@/lib/types'; 
 
-const RERPORT_STATUS = ['Pendiente', 'Aprobado', 'Rechazado'];
-const mockReports = [
-  { id: '#BA13568A', user: 'Pepito', url: 'https://paginafraude.com', description: 'El usuario reporta haber recibido un correo electrónico sospechoso que aparentaba provenir de ...', photo: '/file.svg' },
-  { id: '#BA13568B', user: 'Juanita', url: 'https://otrofraude.net', description: 'El usuario reporta haber recibido un correo electrónico sospechoso que aparentaba provenir de ...', photo: '/file.svg' },
-];
-
+// Opciones de estado para el select
+const REPORT_STATUSES = ['Pendiente', 'Aprobado', 'Rechazado'];
 
 export default function ReportsPage() {
-
-  const [reports,setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,15 +18,16 @@ export default function ReportsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await api.get('/reports/admin/all-reports');
-      setReports(response.data.reports);
-    } catch (err) {
+      // 🚨 LLAMADA A LA API
+      const response = await api.get('/reports/admin/all-reports'); 
+      setReports(response.data);
+    } catch (err: any) {
       console.error('Error fetching reports:', err);
-      setError('Error al cargar los reportes. Inténtalo de nuevo más tarde.');
-    }finally{
+      setError('Error al cargar reportes. Verifique el backend y los permisos.');
+    } finally {
       setIsLoading(false);
     }
-  },[]);
+  }, []);
 
   useEffect(() => {
     fetchReports();
@@ -43,10 +39,9 @@ export default function ReportsPage() {
     }
 
     try {
-      // Llama al endpoint de NestJS para actualizar el estado
-      await api.put(`/reports/admin/update-status/${reportId}`, { estado: newStatus }); //
+      // 🚨 LLAMADA A LA API
+      await api.put(`/reports/admin/update-status/${reportId}`, { estado: newStatus }); 
       
-      // Actualiza localmente el estado del reporte en la UI
       setReports(prevReports => 
         prevReports.map(report => 
           report.id === reportId 
@@ -70,12 +65,12 @@ export default function ReportsPage() {
   }
   
   const reportsToDisplay = reports || [];
-  
+
   return (
     <div className={styles.pageContainer}>
-      <h1 className={styles.pageTitle}>Home Page (Reportes pendientes)</h1>
+      <h1 className={styles.pageTitle}>Reportes Pendientes</h1>
 
-      {/* Filtros de Búsqueda */}
+      {/* Filtros de Búsqueda (CÓDIGO ESTÁTICO) */}
       <div className={styles.filtersContainer}>
         {/* Filtro (Id) */}
         <div className={styles.filterInputContainer}>
@@ -96,9 +91,9 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Tabla de Reportes Pendientes */}
+      {/* Tabla de Reportes */}
       <div className={styles.tableContainer}>
-        <h2 className={styles.tableTitle}>Reportes pendientes de revisión</h2>
+        <h2 className={styles.tableTitle}>Lista de Reportes</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead className={styles.tableHeader}>
             <tr>
@@ -127,7 +122,7 @@ export default function ReportsPage() {
                             defaultValue={report.estado}
                             onChange={(e) => handleUpdateStatus(report.id, e.target.value)}
                         >
-                            {RERPORT_STATUS.map(status => (
+                            {REPORT_STATUSES.map(status => (
                             <option key={status} value={status}>{status}</option>
                             ))}
                         </select>
@@ -139,7 +134,6 @@ export default function ReportsPage() {
                     <td colSpan={5} className={styles.tableDataCell}>No hay reportes para revisar.</td>
                 </tr>
             )}
-
           </tbody>
         </table>
       </div>
