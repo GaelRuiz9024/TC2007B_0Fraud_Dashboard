@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import AuthLayout from '@/components/authLayout/AuthLayout';
 import styles from './login.module.css';
 import { useRouter } from 'next/navigation'; 
+import { useAuth } from '@/context/AuthContext';
+
 
 const LoginSchema = Yup.object().shape({
   correo: Yup.string().email('Correo inválido').required('El correo es obligatorio'),
@@ -15,15 +17,42 @@ const LoginSchema = Yup.object().shape({
 
 export default function LoginPage() {
   const router = useRouter(); 
+  // CAMBIO: Desestructurar del nuevo hook
+  const { login, isAuthenticated, loadingTokens, isAdmin } = useAuth(); 
 
-  const handleSubmit = (values: any, { setSubmitting }: any) => {
-    console.log('Intento de inicio de sesión:', values);
-    setTimeout(() => {
-      alert(`¡Inicio de sesión exitoso simulado! Correo: ${values.correo}`);
+  // Manejo de redirección inicial
+  useEffect(() => {
+    if (!loadingTokens && isAuthenticated && isAdmin) {
+        router.replace('/dashboardLayout/reports');
+    }
+  }, [loadingTokens, isAuthenticated, isAdmin, router]);
+
+  if (loadingTokens) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '1.5rem' }}>
+        Cargando...
+      </div>
+    );
+  }
+  
+  if (isAuthenticated && isAdmin) {
+      return null;
+  }
+
+  const handleSubmit = async (values: any, { setSubmitting, setStatus }: any) => {
+    setSubmitting(true);
+    setStatus(undefined); 
+
+    try {
+      await login(values.correo, values.contraseña);
+      // La redirección ocurrirá automáticamente gracias al useEffect del componente.
+    } catch (error: any) {
+      console.error('Error de inicio de sesión:', error);
+      const message = error.response?.data?.message || 'Error al iniciar sesión. Verifique sus credenciales.';
+      setStatus({ error: message });
+    } finally {
       setSubmitting(false);
-
-      router.replace('/dasboard/reports');
-    }, 400);
+    }
   };
 
   return (
@@ -31,11 +60,10 @@ export default function LoginPage() {
       <div className={styles.loginCard}>
         <div className={styles.imageContainer}>
           <Image
-            src="/next.svg"
+            src="/Logo1.png"
             alt="Seguridad digital"
             layout="fill"
             objectFit="cover"
-            className="invert"
             priority
           />
         </div>

@@ -1,70 +1,118 @@
 .aside {
-    display: flex;
-    flex-direction: column;
-    width: 16rem;
-    background-color: #1f2937;
-    color: white;
-    min-height: 100vh;
-    padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  width: 18rem;
+  background-color: rgb(38, 38, 38);
+  color: white;
+  height: 100vh;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
+/* LOGO PEGADO A LOS BORDES */
 .logoSection {
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background-color: #1e40af; /* Azul oscuro para la sección de logo */
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background-color: transparent;
+  border-radius: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
 }
 
-.logoTitle {
-    font-size: 1.25rem;
-    font-weight: 700;
+.logoImage {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  object-fit: cover; /* Se ajusta al contenedor */
+  display: block;
+}
+
+/* MENÚ DE NAVEGACIÓN */
+.nav {
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navItem {
+  margin-bottom: 0.5rem;
 }
 
 .navLinkBase {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    transition: background-color 0.15s ease-in-out;
-    text-decoration: none;
-    color: white;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  color: white;
+  font-size: 1.15rem;
+  font-weight: 70;
 }
 
+.navLinkBase > span {
+  white-space: nowrap;
+}
+
+/* ESTILO ACTIVO */
 .navLinkActive {
-    background-color: #374151; /* Gris oscuro activo */
-    font-weight: 600;
+  background-color: rgb(60, 60, 60);
+  font-weight: 600;
+  border-left: none;
+  padding-left: 1rem;
 }
 
+/* ESTILO INACTIVO:HOVER */
 .navLinkInactive:hover {
-    background-color: #374151;
+  background-color: rgb(60, 60, 60);
+  transform: none;
 }
 
+/* SECCIÓN DE CERRAR SESIÓN */
 .logoutSection {
-    margin-top: auto;
-    padding-top: 1rem;
-    border-top: 1px solid #4b5563;
+  margin-top: auto;
+  padding: 1.5rem 1rem 1rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .logoutButton {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    background-color: #374151;
-    transition: background-color 0.15s ease-in-out;
-    font-weight: 600;
-    color: white;
-    border: none;
-    cursor: pointer;
+  width: 100%;
+  justify-content: flex-start;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  transform: none;
 }
 
 .logoutButton:hover {
-    background-color: #dc2626;
+  background-color: rgb(60, 60, 60);
+}
+
+/* AVATAR */
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #3f51b5;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.logoutButton > span {
+  white-space: nowrap;
 }
