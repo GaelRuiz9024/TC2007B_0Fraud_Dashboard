@@ -9,7 +9,8 @@ import styles from './config.module.css';
 import reportStyles from '../reports/reports.module.css'; // Importa estilos necesarios, incluyendo .tableWrapper
 import { api } from '@/lib/api'; 
 import { Category, User } from '@/lib/types'; 
-
+import NotificationCard from '@/components/notification/NotificationCard';
+import ConfirmationModal from '@/components/confirmationModal/ConfirmationModal';
 // Esquema de validación para Crear Categoría
 const CategorySchema = Yup.object().shape({
   nombre: Yup.string().required('El nombre es obligatorio'),
@@ -22,12 +23,48 @@ const ROLES = [
   { id: 2, name: 'Usuario' },
 ];
 
+interface ConfirmationState {
+  isOpen: boolean;
+  message: string;
+  onConfirmAction: (() => void) | null;
+}
+
 export default function ConfigPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+// ✨ 3. AÑADIR ESTADOS PARA NOTIFICACIÓN Y CONFIRMACIÓN
+  const [notification, setNotification] = useState<{ message: string | null; type: 'success' | 'error' | null }>({
+    message: null,
+    type: null,
+  });
+  const [confirmation, setConfirmation] = useState<ConfirmationState>({
+    isOpen: false,
+    message: '',
+    onConfirmAction: null,
+  });
 
-  // --- Funciones de Carga de Datos ---
+  // ✨ 4. AÑADIR FUNCIONES HELPER
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+  };
+  const closeNotification = () => {
+    setNotification({ message: null, type: null });
+  };
+  const openConfirmationModal = (message: string, onConfirm: () => void) => {
+    setConfirmation({ isOpen: true, message: message, onConfirmAction: onConfirm });
+  };
+  const closeConfirmationModal = () => {
+    setConfirmation({ isOpen: false, message: '', onConfirmAction: null });
+  };
+  const handleConfirmAction = () => {
+    if (confirmation.onConfirmAction) {
+      confirmation.onConfirmAction();
+    }
+    closeConfirmationModal();
+  };
+
+// --- Funciones de Carga de Datos ---
   const fetchCategories = useCallback(async () => {
     try {
       const response = await api.get('/admin/categories'); 
@@ -50,71 +87,86 @@ export default function ConfigPage() {
     Promise.all([fetchCategories(), fetchUsers()])
       .finally(() => setIsLoading(false));
   }, [fetchCategories, fetchUsers]);
-
   // --- Manejo de Categorías ---
+  // ✅ 5. MODIFICAR handleCategorySubmit
   const handleCategorySubmit = async (values: any, { setSubmitting, resetForm, setStatus }: any) => {
     setSubmitting(true);
     setStatus(undefined);
-
     try {
-      await api.post('/admin/categories', { 
+      await api.post('/admin/categories', {
         nombre: values.nombre,
         descripcion: values.descripcion,
         activa: values.activa ? 1 : 0,
       });
-      alert(`Categoría '${values.nombre}' creada exitosamente.`);
+      showNotification(`Categoría '${values.nombre}' creada exitosamente. ✨`, 'success'); // <-- Reemplazar alert
       resetForm({ values: { nombre: '', descripcion: '', activa: true } });
-      await fetchCategories(); 
+      await fetchCategories();
     } catch (error: any) {
-      setStatus({ error: error.response?.data?.message || 'Error al crear categoría' });
+      const errMsg = error.response?.data?.message || 'Error al crear categoría';
+      setStatus({ error: errMsg });
+      showNotification(`Error: ${errMsg}`, 'error'); // <-- Reemplazar alert
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleUpdateCategory = async (id: number, currentActiva: 0|1) => {
+  // ✅ 6. MODIFICAR handleUpdateCategory
+  const handleUpdateCategory = async (id: number, currentActiva: 0 | 1) => {
     const newActiva = currentActiva === 1 ? 0 : 1;
-    const newStatus = newActiva === 1 ? 'Activa' : 'Inactiva';
-    
-    if (!window.confirm(`¿Seguro que quieres cambiar el estado de la categoría a ${newStatus}?`)) {
-        return;
-    }
+    const actionText = newActiva === 1 ? 'Activar' : 'Desactivar';
+    const emoji = newActiva === 1 ? '✅' : '⏳';
 
-    try {
-        await api.put(`/admin/categories/${id}`, { activa: newActiva }); 
-        alert(`Categoría actualizada a ${newStatus}`);
-        fetchCategories(); 
-    } catch (error: any) {
-        alert(`Error al actualizar la categoría: ${error.response?.data?.message || 'Error de conexión'}`);
-    }
+    openConfirmationModal( // <-- Reemplazar window.confirm
+      `${emoji} ¿Seguro que quieres ${actionText.toLowerCase()} la categoría #${id}?`,
+      async () => { // Acción a confirmar
+        try {
+          await api.put(`/admin/categories/${id}`, { activa: newActiva });
+          showNotification(`Categoría #${id} actualizada a ${actionText === 'Activar' ? 'Activa' : 'Inactiva'}.`, 'success'); // <-- Reemplazar alert
+          fetchCategories();
+        } catch (error: any) {
+          const errMsg = error.response?.data?.message || 'Error de conexión';
+          showNotification(`Error al actualizar la categoría #${id}: ${errMsg}`, 'error'); // <-- Reemplazar alert
+        }
+      }
+    );
   };
 
   // --- Manejo de Usuarios y Roles ---
+  // ✅ 7. MODIFICAR handleUpdateRole
   const handleUpdateRole = async (userId: number, newRolId: number) => {
     const roleName = getRoleName(newRolId);
-    if (!window.confirm(`¿Seguro que quieres cambiar el rol del usuario ${userId} a ${roleName}?`)) {
-        return;
-    }
-    try {
-      await api.put(`/admin/user/${userId}/role`, { idRol: newRolId }); 
-      alert(`Rol de usuario ${userId} actualizado a ${roleName}`);
-      await fetchUsers(); 
-    } catch (error: any) {
-      alert(`Error al actualizar rol: ${error.response?.data?.message || 'Error de conexión'}`);
-    }
+    const emoji = newRolId === 1 ? '👑' : '👤';
+
+    openConfirmationModal( // <-- Reemplazar window.confirm
+      `${emoji} ¿Seguro que quieres cambiar el rol del usuario #${userId} a ${roleName}?`,
+      async () => { // Acción a confirmar
+        try {
+          await api.put(`/admin/user/${userId}/role`, { idRol: newRolId });
+          showNotification(`Rol del usuario #${userId} actualizado a ${roleName}.`, 'success'); // <-- Reemplazar alert
+          await fetchUsers();
+        } catch (error: any) {
+          const errMsg = error.response?.data?.message || 'Error de conexión';
+          showNotification(`Error al actualizar rol del usuario #${userId}: ${errMsg}`, 'error'); // <-- Reemplazar alert
+        }
+      }
+    );
   };
 
+  // ✅ 8. MODIFICAR handleDeleteUser
   const handleDeleteUser = async (userId: number) => {
-    if (!window.confirm(`⚠️ ¿Seguro que quieres ELIMINAR (desactivar) al usuario con ID ${userId}?`)) {
-        return;
-    }
-    try {
-      await api.delete(`/admin/user/${userId}`); 
-      alert(`Usuario ${userId} eliminado (desactivado)`);
-      await fetchUsers(); 
-    } catch (error: any) {
-      alert(`Error al eliminar usuario: ${error.response?.data?.message || 'Error de conexión'}`);
-    }
+    openConfirmationModal( // <-- Reemplazar window.confirm
+      `🗑️ ¿Seguro que quieres ELIMINAR (desactivar) al usuario #${userId}? Esta acción marcará al usuario como inactivo.`,
+      async () => { // Acción a confirmar
+        try {
+          await api.delete(`/admin/user/${userId}`);
+          showNotification(`Usuario #${userId} desactivado correctamente.`, 'success'); // <-- Reemplazar alert
+          await fetchUsers(); // Refrescar la lista para que desaparezca
+        } catch (error: any) {
+           const errMsg = error.response?.data?.message || 'Error de conexión';
+           showNotification(`Error al desactivar usuario #${userId}: ${errMsg}`, 'error'); // <-- Reemplazar alert
+        }
+      }
+    );
   };
 
   const getRoleName = (idRol: number) => {
@@ -130,6 +182,17 @@ export default function ConfigPage() {
 
   return (
     <div className={reportStyles.pageContainer}>
+      <NotificationCard
+        message={notification.message}
+        type={notification.type}
+        onClose={closeNotification}
+      />
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        message={confirmation.message}
+        onConfirm={handleConfirmAction}
+        onCancel={closeConfirmationModal}
+      />
       <h1 className={reportStyles.pageTitle}>Configuración</h1>
 
       <div className={styles.gridContainer}>
@@ -181,13 +244,12 @@ export default function ConfigPage() {
           </Formik>
         </div>
 
-        {/* Categorías Existentes (Tabla) */}
-        <div className={reportStyles.tableContainer}>
-          <h2 className={styles.cardTitle} style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>Categorías existentes</h2>
-          
-          {/* ✅ APLICAR SCROLL: tableWrapper (Aplica max-height: 400px y overflow-y: auto) */}
-          <div className={reportStyles.tableWrapper}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+{/* Categorías Existentes */}
+        <div className={`${styles.card} ${styles.tableCard}`}>
+          <h2 className={styles.cardTitle}>Categorías existentes</h2>
+          {/* ✅ CAMBIO: Añadir clase específica */}
+          <div className={`${styles.tableWrapper} ${styles.categoryTableWrapper}`}>
+            <table>
               <thead className={reportStyles.tableHeader}>
                 <tr>
                   {['ID', 'Nombre', 'Estado', 'Acciones'].map((header) => (
@@ -219,12 +281,11 @@ export default function ConfigPage() {
       </div>
 
       {/* Manejo de Usuarios y Roles (Tabla) */}
-      <div className={reportStyles.tableContainer} style={{ gridColumn: 'span 2 / span 2', marginTop: '1.5rem' }}>
-        <h2 className={styles.cardTitle} style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>Manejo de usuarios y roles</h2>
+      <div className={`${styles.card} ${styles.tableCard} ${styles.userTableContainer}`}> {/* Aplicar clases card, tableCard y userTableContainer */}        <h2 className={styles.cardTitle} style={{ padding: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>Manejo de usuarios y roles</h2>
         
         {/* ✅ APLICAR SCROLL: tableWrapper */}
         <div className={reportStyles.tableWrapper}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table >
             <thead className={reportStyles.tableHeader}>
               <tr>
                 {['Id', 'Correo', 'Nombre',  'Modificar rol', 'Acciones'].map((header) => (

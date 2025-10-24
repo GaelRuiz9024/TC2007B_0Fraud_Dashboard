@@ -31,10 +31,10 @@ export default function Sidebar() {
    {/* Sección del Logo/Título de la Aplicación */}
    <div className={styles.logoSection}>
     <Image 
-     src="/Logo.png" 
+     src="/Logo.jpg" 
      alt="Logo de Fraude" 
-     width={280} // Valor grande para que Next.js genere una imagen de alta resolución
-     height={80} // Valor alto para mantener la proporción, el CSS lo ajustará
+     width={180} // Valor grande para que Next.js genere una imagen de alta resolución
+     height={60} // Valor alto para mantener la proporción, el CSS lo ajustará
      className={styles.logoImage} 
     />
    </div>

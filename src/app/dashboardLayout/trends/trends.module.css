@@ -1,6 +1,16 @@
 /* src/app/dashboardLayout/trends/trends.module.css */
 
 /* Rejilla principal para la página */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .gridContainer {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
@@ -15,26 +25,36 @@
 
 /* Estilo general de las Tarjetas/Contenedores */
 .card {
+    /* ✅ CAMBIO: Aplicar estilos consistentes */
+    background-color: #374151; /* Gris oscuro claro */
+    border-radius: 0.75rem; /* Bordes redondeados */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Sombra sutil */
+    border: 1px solid #4b5563; /* Borde sutil */
     padding: 1.5rem;
-    height: auto;
-    /* Fondo de la tarjeta (gris muy oscuro) */
-    background-color: #1f2937;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2); 
     color: white; 
+    height: auto; /* Altura automática */
+
+    /* ✨ NUEVO: Aplicar animación */
+    opacity: 0; /* Inicia invisible */
+    animation: fadeInUp 0.5s ease-out forwards; /* Aplicar animación */
 }
 
-@media (prefers-color-scheme: dark) {
-    .card {
-        background-color: #1f2937; 
-    }
+.card:nth-child(1) {
+  animation-delay: 0.1s;
 }
-
+.card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.card:nth-child(3) {
+  animation-delay: 0.3s;
+}
 .cardTitle {
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
     color: white; 
+    border-bottom: 1px solid #4b5563;
+    padding-bottom: 1rem;
 }
 
 /* Estilos de la gráfica de anillo (Percentage Dial) */
@@ -70,11 +90,6 @@
     z-index: 1;
 }
 
-@media (prefers-color-scheme: dark) {
-    .dialCircle::after {
-        background-color: #1f2937; 
-    }
-}
 
 .dialPercentageText {
     position: relative; 
@@ -89,7 +104,16 @@
     font-weight: 500;
     color: white; 
 }
-
+/* Ajustar colores de ejes/ticks en gráficos para el nuevo fondo */
+.chartAxisLabel,
+.lineChartOptions scales x ticks, /* Asumiendo que se aplican a través de JS */
+.lineChartOptions scales y ticks { /* Asumiendo que se aplican a través de JS */
+    color: #9ca3af !important; /* Usar !important si las opciones JS interfieren */
+}
+.lineChartOptions scales x grid, /* Asumiendo que se aplican a través de JS */
+.lineChartOptions scales y grid { /* Asumiendo que se aplican a través de JS */
+     color: rgba(255, 255, 255, 0.1) !important; 
+}
 /* Gráfico Placeholder y otros estilos (mantener sin cambios) */
 .chartPlaceholder {
     border: none;
@@ -139,6 +163,7 @@
     justify-content: center;
     gap: 0.75rem;
     padding-left: 1rem; 
+    color: #d1d5db; /* Ajustar color de texto si es necesario */
 }
 
 .legendItem {
@@ -154,8 +179,7 @@
 }
 
 .legendLabel {
-    color: white; 
-}
+    color: #d1d5db; /* Asegurar color claro */}
 
 .legendPercentage {
     margin-left: auto;

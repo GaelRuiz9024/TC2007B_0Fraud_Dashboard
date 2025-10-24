@@ -6,6 +6,8 @@ import styles from './reports.module.css';
 import { api } from '@/lib/api';
 import { Report } from '@/lib/types'; 
 import SwitchComponent from '@/components/switch/Switch'; 
+import NotificationCard from '@/components/notification/NotificationCard';
+import ConfirmationModal from '@/components/confirmationModal/ConfirmationModal';
 
 const REPORT_STATUSES = ['Pendiente', 'Aprobado', 'Rechazado'];
 
@@ -16,7 +18,11 @@ interface ReportFilters {
     url: string;
     showAllStatuses: boolean; 
 }
-
+interface ConfirmationState {
+  isOpen: boolean;
+  message: string;
+  onConfirmAction: (() => void) | null; // Guardar la acción a ejecutar
+}
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [filters, setFilters] = useState<ReportFilters>({ 
@@ -28,7 +34,25 @@ export default function ReportsPage() {
   }); 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string | null; type: 'success' | 'error' | null }>({
+    message: null,
+    type: null,
+  });
 
+  const [confirmation, setConfirmation] = useState<ConfirmationState>({
+    isOpen: false,
+    message: '',
+    onConfirmAction: null,
+  });
+// Función para mostrar notificación
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+  };
+
+  // Función para cerrar notificación
+  const closeNotification = () => {
+    setNotification({ message: null, type: null });
+  };
   const fetchReports = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -57,29 +81,72 @@ export default function ReportsPage() {
   const handleStatusSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilters(prev => ({ ...prev, showAllStatuses: e.target.checked }));
   };
-  
-  const handleUpdateStatus = async (reportId: number, newStatus: string) => {
-    if (!window.confirm(`¿Estás seguro de cambiar el estado del reporte #${reportId} a: ${newStatus}?`)) {
-        return;
-    }
-
-    try {
-      await api.put(`/reports/admin/update-status/${reportId}`, { estado: newStatus }); 
-      
-      setReports(prevReports => 
-        prevReports.map(report => 
-          report.id === reportId 
-            ? { ...report, estado: newStatus }
-            : report
-        )
-      );
-      alert(`Reporte #${reportId} actualizado a: ${newStatus}`);
-    } catch (err: any) {
-      console.error('Error updating report status:', err);
-      alert(`Error al actualizar el reporte #${reportId}: ${err.response?.data?.message || 'Error de conexión'}`);
-    }
+  const openConfirmationModal = (message: string, onConfirm: () => void) => {
+    setConfirmation({
+      isOpen: true,
+      message: message,
+      onConfirmAction: onConfirm,
+    });
   };
+  const closeConfirmationModal = () => {
+    setConfirmation({
+      isOpen: false,
+      message: '',
+      onConfirmAction: null,
+    });
+  };
+  const handleConfirmAction = () => {
+    if (confirmation.onConfirmAction) {
+      confirmation.onConfirmAction(); // Ejecuta la acción guardada
+    }
+    closeConfirmationModal(); // Cierra el modal
+  };
+ const handleUpdateStatus = (reportId: number, newStatus: string) => {
+    // ✨ CAMBIO: Formatear el mensaje para ser más amigable
+    let confirmationMessage = '';
+    let emoji = '';
 
+    switch (newStatus) {
+      case 'Aprobado':
+        emoji = '✅';
+        confirmationMessage = `¿Estás seguro de Aprobar el reporte #${reportId}?`;
+        break;
+      case 'Rechazado':
+        emoji = '❌';
+        confirmationMessage = `¿Estás seguro de Rechazar el reporte #${reportId}?`;
+        break;
+      case 'Pendiente':
+        emoji = '⏳';
+        confirmationMessage = `¿Estás seguro de marcar como Pendiente el reporte #${reportId}?`;
+        break;
+      default:
+        confirmationMessage = `¿Estás seguro de cambiar el estado del reporte #${reportId} a ${newStatus}?`;
+    }
+
+    const fullMessage = `${emoji} ${confirmationMessage}`; // Añadir emoji al inicio
+
+    openConfirmationModal(
+      fullMessage, // Usar el mensaje formateado
+      // Pasar la lógica de actualización como la acción a confirmar
+      async () => {
+        try {
+          await api.put(`/reports/admin/update-status/${reportId}`, { estado: newStatus });
+          setReports(prevReports =>
+            prevReports.map(report =>
+              report.id === reportId
+                ? { ...report, estado: newStatus }
+                : report
+            )
+          );
+          showNotification(`Reporte #${reportId} actualizado a: ${newStatus}`, 'success');
+        } catch (err: any) {
+          console.error('Error updating report status:', err);
+          const errorMessage = err.response?.data?.message || err.message || 'Error de conexión';
+          showNotification(`Error al actualizar el reporte #${reportId}: ${errorMessage}`, 'error');
+        }
+      }
+    );
+  };
   // 👈 LÓGICA DE FILTRADO COMPLETA
   const filteredReports = reports.filter(report => {
     // 1. Filtrar por ESTADO (Switch: si showAllStatuses es false, solo mostramos 'Pendiente')
@@ -120,6 +187,18 @@ export default function ReportsPage() {
 
   return (
     <div className={styles.pageContainer}>
+          {/* ✨ NUEVO: Renderizar la notificación */}
+          <NotificationCard
+            message={notification.message}
+            type={notification.type}
+            onClose={closeNotification}
+          />
+          <ConfirmationModal
+            isOpen={confirmation.isOpen}
+            message={confirmation.message}
+            onConfirm={handleConfirmAction} // Llama a la función que ejecuta la acción
+            onCancel={closeConfirmationModal} // Simplemente cierra el modal
+          />
       <h1 className={styles.pageTitle}>Reportes Pendientes</h1>
 
       {/* Filtros de Búsqueda */}
@@ -204,16 +283,17 @@ export default function ReportsPage() {
                             <td className={`${styles.tableDataCell} ${styles.dataSecondary}`} style={{ maxWidth: 300, whiteSpace: 'normal' }}>
                                 {report.descripcion}
                             </td>
-                            <td className={styles.tableDataCell} style={{ textAlign: 'right', fontWeight: 500 }}>
-                                <select 
-                                    defaultValue={report.estado}
-                                    onChange={(e) => handleUpdateStatus(report.id, e.target.value)}
-                                >
-                                    {REPORT_STATUSES.map(status => (
-                                    <option key={status} value={status}>{status}</option>
-                                    ))}
-                                </select>
-                            </td>
+                            <td className={`${styles.tableDataCell} ${styles.statusSelectCell}`}> 
+                              <select 
+                                  className={styles.statusSelect} // <-- Clase para el select
+                                  defaultValue={report.estado}
+                                  onChange={(e) => handleUpdateStatus(report.id, e.target.value)}
+                              >
+                                  {REPORT_STATUSES.map(status => (
+                                  <option key={status} value={status}>{status}</option>
+                                  ))}
+                              </select>
+                          </td>
                         </tr>
                         ))
                     ) : (

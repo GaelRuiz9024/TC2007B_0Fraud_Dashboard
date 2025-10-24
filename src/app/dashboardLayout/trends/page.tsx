@@ -153,9 +153,9 @@ export default function TrendsPage() {
     setError(null);
     try {
       const [categoriesResponse, statusResponse, historicalResponse] = await Promise.all([
-        api.get<ReportsByCategory[]>('/admin/analytics/reports-by-category?limit=5'), 
-        api.get<StatusPecentage[]>('/admin/analytics/status-percentage'), 
-        api.get<HistoricalReportData[]>('/admin/analytics/historical-trends'), // 👈 CONSUMO DEL ENDPOINT HISTÓRICO
+        api.get<ReportsByCategory[]>('/analytics/reports-by-category?limit=5'), 
+        api.get<StatusPecentage[]>('/analytics/status-percentage'), 
+        api.get<HistoricalReportData[]>('/analytics/historical-trends'), // 👈 CONSUMO DEL ENDPOINT HISTÓRICO
       ]);
 
       const fetchedCategories = categoriesResponse.data;

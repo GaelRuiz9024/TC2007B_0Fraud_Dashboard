@@ -1,0 +1,101 @@
+/* src/components/notification/notificationCard.module.css */
+
+/* Overlay: Mantiene centrado el contenido */
+.overlay {
+  position: fixed; 
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  /* ✨ CAMBIO: Alinear arriba para que la notificación aparezca cerca de la parte superior */
+  align-items: flex-start; 
+  justify-content: center; 
+  z-index: 1000; 
+  /* ✨ CAMBIO: Padding superior para bajarla un poco */
+  padding: 2rem 1rem; 
+}
+
+/* Estilos base de la tarjeta */
+.notificationCard {
+  position: relative; 
+  /* ✨ CAMBIO: Usar un gris más oscuro, similar al modal */
+  background-color: #374151; 
+  /* ✨ CAMBIO: Color de texto claro */
+  color: #f3f4f6; 
+  /* ✨ CAMBIO: Más padding vertical y horizontal */
+  padding: 1.25rem 3rem 1.25rem 1.5rem; /* Más espacio para botón y texto */
+  border-radius: 0.5rem; /* Bordes menos redondeados */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 600px; /* Un poco más ancha */
+  min-width: 320px; 
+  text-align: left; /* Alinear texto a la izquierda */
+  border-left-width: 5px; /* Borde izquierdo más delgado pero visible */
+  /* ✨ NUEVO: Flexbox para alinear icono y texto */
+  display: flex;
+  align-items: center; /* Alinear verticalmente icono y texto */
+  gap: 1rem; /* Espacio entre icono y texto */
+}
+
+/* Estilo para notificación de éxito */
+.success {
+  border-left-color: #34d399; /* Verde esmeralda más brillante */
+  background-color: #4b5563; /* Fondo gris medio */
+  color: #d1fae5; /* Texto verde muy claro */
+}
+/* ✨ NUEVO: Icono de check para éxito */
+.success::before {
+  content: '✓'; /* Símbolo de check */
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #34d399; /* Mismo color que el borde */
+  flex-shrink: 0; /* Evitar que el icono se encoja */
+}
+
+
+/* Estilo para notificación de error */
+.error {
+  border-left-color: #f87171; /* Rojo más brillante */
+  background-color: #4b5563; /* Fondo gris medio */
+  color: #fee2e2; /* Texto rojo muy claro */
+}
+/* ✨ NUEVO: Icono de 'x' para error */
+.error::before {
+  content: '✕'; /* Símbolo de 'x' */
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #f87171; /* Mismo color que el borde */
+  flex-shrink: 0; /* Evitar que el icono se encoja */
+}
+
+/* Estilo del mensaje */
+.message {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5; /* Mejorar espaciado */
+}
+
+/* Botón de cerrar */
+.closeButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem; /* Hacer la 'x' un poco más grande */
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  color: inherit; /* Hereda color del texto */
+  opacity: 0.6; /* Más sutil */
+  transition: opacity 0.2s;
+}
+
+.closeButton:hover {
+  opacity: 1;
+}
+
+/* Quitar adaptación dark mode específica si ya usamos colores oscuros base */
+/* @media (prefers-color-scheme: dark) { ... } */

@@ -2,7 +2,9 @@
 
 .pageContainer {
     margin-bottom: 2rem;
-}
+    display: flex; /* Habilitar Flexbox */
+    flex-direction: column; /* Organizar elementos verticalmente */
+    height: calc(100vh - 6rem); /* Ajusta '4rem' si el padding/margen del layout es diferente */}
 
 .pageTitle {
     font-size: 1.875rem;
@@ -21,19 +23,17 @@
 .filtersContainer {
     display: flex; 
     align-items: center; 
-    gap: 1rem; /* Espacio entre los elementos */
+    gap: 1rem;
     padding: 1rem;
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    flex-wrap: wrap; 
+    /* 🎨 CAMBIO: Color de fondo ligeramente más claro que el fondo general oscuro */
+    background-color: #374151; /* Gris oscuro (antes era #1f2937 en dark mode) */
+    /* ✅ CAMBIO: Asegurar bordes redondeados */
+    border-radius: 0.75rem; /* Un poco más redondeado */
+    /* ✨ CAMBIO: Añadir sombra sutil */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
 }
 
-@media (prefers-color-scheme: dark) {
-    .filtersContainer {
-        background-color: #1f2937;
-    }
-}
 
 /* Contenedor para ID, Categoría, URL (los que contienen un input) */
 .filterInputContainer {
@@ -45,20 +45,17 @@
 
 /* Estilo del input base */
 .filterInput {
-    width: 80%;
-    /* Mismo padding que el botón de switch para alinear la altura */
+    width: 100%; /* Ocupa todo el espacio del contenedor */
     padding: 0.5rem 0.5rem 0.5rem 2.5rem; 
-    border: 1px solid #d1d5db;
+    border: 1px solid #6b7280; /* Borde un poco más visible */
     border-radius: 0.5rem;
+    /* 🎨 CAMBIO: Usar un color un poco más claro para el input */
+    background-color: #4b5563; /* Gris medio */
+    color: white;
+    height: 2.2rem; /* Asegurar misma altura que el switch */
+    box-sizing: border-box; /* Incluir padding y borde en la altura */
 }
 
-@media (prefers-color-scheme: dark) {
-    .filterInput {
-        background-color: #374151;
-        border-color: #4b5563;
-        color: white;
-    }
-}
 
 .filterIcon {
     position: absolute;
@@ -71,125 +68,156 @@
 .filterSwitchContainer {
     display: flex;
     align-items: center;
-    /* Alinear texto a la izquierda y switch a la derecha */
     justify-content: space-between; 
     
     padding: 0.5rem 1rem; 
-    background-color: white;
+    /* 🎨 CAMBIO: Usar un color un poco más claro para el input/switch */
+    background-color: #4b5563; /* Gris medio (para diferenciar del fondo del contenedor) */
     border-radius: 0.5rem;
-    border: 1px solid #d1d5db;
-    height: 1.2rem; /* Altura forzada para coincidir con la altura del input (padding + altura de línea) */
+    border: 1px solid #6b7280; /* Borde un poco más visible */
+    height: 1rem; /* Ajustar altura si es necesario */
     
-    /* CLAVE: Crece uniformemente (1/4 del espacio) */
     flex: 1 1 0; 
     min-width: 150px;
-    font-size: 0.875rem; /* Tamaño de fuente para el texto del switch */
+    font-size: 0.875rem;
+    color: #e5e7eb; /* Texto claro */
 }
 
-@media (prefers-color-scheme: dark) {
-    .filterSwitchContainer {
-        background-color: #374151;
-        color: #e5e7eb;
-        border-color: #4b5563;
-    }
-}
 
 
 /* Tablas */
 
 /* Contenedor que aplica el scroll (La tabla en sí) */
 .tableContainer {
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-    /* Mantener el margen para separar de los filtros */
+    background-color: #374151; 
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     margin-top: 2rem; 
-    overflow: hidden;
-    /* La scrollbar debe ir dentro de un wrapper */
-}
-
-@media (prefers-color-scheme: dark) {
-    .tableContainer {
-        background-color: #1f2937;
-    }
+    border: 1px solid #4b5563; 
+    padding: 1rem; 
+    display: flex;
+    flex-direction: column;
+    
+    /* ✅ CAMBIO: Permitir que crezca, pero también que se encoja si el contenido es menor */
+    flex-grow: 1; /* Intenta ocupar espacio */
+    flex-shrink: 1; /* Permite encogerse */
+    min-height: 0; /* Necesario en flex column para permitir encogerse correctamente */
+    overflow: hidden; /* Oculta el overflow del contenedor principal, el wrapper lo manejará */
 }
 
 /* Contenedor que aplica el scroll (Wrapper usado en reports/page.tsx) */
 .tableWrapper {
-    max-height: 400px; /* Altura máxima fija */
-    overflow-y: auto;  /* Habilitar la barra de desplazamiento */
-    position: relative;
-    /* Padding inferior para que no se oculte la última fila tras la barra */
+    /* ✅ CAMBIO: Quitar flex-grow y max-height fijo */
+    /* flex-grow: 1; */ 
+    /* max-height: 400px; */ /* Quitar altura máxima fija */
+    
+    overflow-y: auto;  /* Scrollbar aparece solo si es necesario */
+    position: relative; /* Mantiene contexto para sticky header */
     padding-bottom: 1px; 
+    border: 1px solid #4b5563;
+    border-radius: 0.5rem; 
+    /* ✅ NUEVO: Permitir que se encoja si la tabla es pequeña */
+    min-height: 0; 
 }
-
-
+.tableWrapper table {
+    margin: 0;
+    width: 100%;
+    border-collapse: collapse; 
+}
 .tableTitle {
     font-size: 1.25rem;
     font-weight: 600;
-    padding: 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    color: #1f2937;
+    /* 🎨 CAMBIO: Borde inferior más sutil */
+    border-bottom: 1px solid #4b5563; /* Gris medio */
+    /* 🎨 CAMBIO: Color de texto claro */
+    color: white;
 }
 
-@media (prefers-color-scheme: dark) {
-    .tableTitle {
-        border-bottom-color: #374151;
-        color: white;
-    }
-}
 
 /* Hace que el encabezado se mantenga visible al hacer scroll */
 .tableHeader th {
-    /* Clases originales, solo se añade la posición fija */
     position: sticky;
     top: 0;
     z-index: 10;
-    
     padding: 0.75rem 1.5rem;
     text-align: left;
     font-size: 0.75rem;
     font-weight: 500;
-    color: #6b7280;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    background-color: #f9fafb;
+    /* 🎨 CAMBIO: Fondo del encabezado ligeramente más oscuro que el contenedor */
+    background-color: #4b5563; /* Gris medio */
+    /* 🎨 CAMBIO: Color de texto claro */
+    color: #d1d5db; /* Gris claro */
+    border-bottom: 1px solid #374151; /* Color del contenedor */
 }
 
-@media (prefers-color-scheme: dark) {
-    .tableHeader th {
-        background-color: #374151; 
-        color: #d1d5db;
-    }
-}
-/* ... (resto de estilos de tabla) ... */
-@media (prefers-color-scheme: dark) {
-    .tableHeader th {
-        background-color: #374151;
-        color: #d1d5db;
-    }
-}
+
+
 
 .tableRow {
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: none;
 }
-@media (prefers-color-scheme: dark) {
-    .tableRow {
-        border-bottom-color: #374151;
-    }
+.tableRow:nth-child(odd) {
+    background-color: #374151; 
 }
 
+.tableRow:nth-child(even) {
+    background-color: #4b5563; /* Gris medio */
+}
 .tableDataCell {
     padding: 1rem 1.5rem;
     font-size: 0.875rem;
     white-space: nowrap;
+    text-align: left; 
+    /* ✨ NUEVO: Borde superior sutil entre filas */
+    border-top: 1px solid #4b5563;
+}
+
+.tableRow:first-child .tableDataCell {
+    border-top: none;
 }
 
 .dataPrimary {
-    color: #1f2937;
-    font-weight: 500;
+   color: #f3f4f6; 
+   font-weight: 500;
+}
+.statusSelectCell {
+    /* Hereda padding y font-size de .tableDataCell */
+    /* Asegura alineación izquierda (ya está por defecto en .tableDataCell) */
+    text-align: left; 
 }
 
+.statusSelect {
+    /* Estilos base del select */
+    padding: 0.5rem 2.5rem 0.5rem 0.75rem; /* Ajuste padding derecho para la flecha */
+    border: 1px solid #6b7280; /* Borde gris */
+    border-radius: 0.5rem; /* Bordes redondeados */
+    background-color: #4b5563; /* Fondo gris medio */
+    color: white; /* Texto blanco */
+    font-size: 0.875rem; /* Mismo tamaño que el texto de la celda */
+    font-weight: 500;
+    cursor: pointer;
+    
+    /* Quitar apariencia nativa y añadir flecha personalizada */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M10 12l-6-6h12l-6 6z'/%3E%3C/svg%3E"); 
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center; /* Posición de la flecha */
+    background-size: 0.8em; /* Tamaño de la flecha */
+}
+
+.statusSelect:focus {
+    outline: 2px solid var(--color-primary-blue);
+    border-color: var(--color-primary-blue);
+}
+
+/* Asegurar que los estilos de :focus no cambien el color de fondo */
+.statusSelect:focus-visible {
+    background-color: #4b5563;
+}
 @media (prefers-color-scheme: dark) {
     .dataPrimary {
         color: #f3f4f6;

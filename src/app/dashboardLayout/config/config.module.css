@@ -1,115 +1,118 @@
-/* src/app/(dashboard)/config/config.module.css */
+/* src/app/dashboardLayout/config/config.module.css */
+
+/* ✨ NUEVO: Definición de la animación (si no está global) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Contenedor principal de la rejilla */
 .gridContainer {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     gap: 1.5rem;
+    align-items: start; /* Alinear items al inicio para que el form no se estire */
 }
 
 @media (min-width: 1024px) {
     .gridContainer {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, 1fr); 
     }
 }
-.tableWrapper {
-    max-height: 200px; /* Altura máxima fija */
-    overflow-y: auto;  /* Habilitar la barra de desplazamiento */
-    position: relative;
-    /* Padding inferior para que no se oculte la última fila tras la barra */
-    padding-bottom: 1px; 
-}
 
+/* Estilo base de las tarjetas */
 .card {
+    /* ✅ CAMBIO: Aplicar estilos consistentes */
+    background-color: #374151; /* Color de fondo correcto */
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border: 1px solid #4b5563;
     padding: 1.5rem;
-    background-color: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    color: white; /* Asegurar texto blanco */
+
+    /* ✨ NUEVO: Aplicar animación */
+    opacity: 0; 
+    animation: fadeInUp 0.5s ease-out forwards; 
+    height: fit-content;
 }
 
-@media (prefers-color-scheme: dark) {
-    .card {
-        background-color: #1f2937;
-    }
-}
-
+/* ✨ NUEVO: Retraso escalonado (ajustado para 2 columnas + tabla inferior) */
+.gridContainer .card:nth-child(1) { animation-delay: 0.1s; }
+.gridContainer .card:nth-child(2) { animation-delay: 0.2s; }
+.userTableContainer { animation-delay: 0.3s; } /* Para la tabla de usuarios */
+/* Título dentro de las tarjetas */
 .cardTitle {
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: 1rem;
-    color: #1f2937;
+    margin-bottom: 1.5rem; /* Más espacio */
+    color: white;
+    border-bottom: 1px solid #4b5563; /* Separador */
+    padding-bottom: 1rem;
 }
 
-@media (prefers-color-scheme: dark) {
-    .cardTitle {
-        color: white;
-    }
-}
-
+/* Estilos del Formulario "Crear Categoría" */
 .form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem; /* Más espacio entre elementos */
 }
 
 .formLabel {
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
-    margin-bottom: 0.25rem;
+    color: #d1d5db; /* Gris claro */
+    margin-bottom: 0.5rem; /* Espacio sobre el input */
 }
 
-@media (prefers-color-scheme: dark) {
-    .formLabel {
-        color: #e5e7eb;
-    }
-}
-
-.formInput, .formTextarea, .tableSelect {
+/* Inputs y Textarea */
+.formInput, .formTextarea {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
+    padding: 0.75rem; /* Más padding */
+    border: 1px solid #6b7280; /* Borde gris */
     border-radius: 0.5rem;
-    background-color: white;
+    background-color: #4b5563; /* Gris medio */
+    color: white;
+    box-sizing: border-box; 
 }
 
-@media (prefers-color-scheme: dark) {
-    .formInput, .formTextarea, .tableSelect {
-        background-color: #374151;
-        border-color: #4b5563;
-        color: white;
-    }
+.formInput:focus, .formTextarea:focus {
+    outline: 2px solid var(--color-primary-blue);
+    border-color: var(--color-primary-blue);
 }
 
+.formTextarea {
+    resize: vertical; /* Permitir redimensionar solo verticalmente */
+    min-height: 80px;
+}
+
+/* Contenedor del Switch */
 .switchContainer {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.switchLabel {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #374151;
-}
-
-@media (prefers-color-scheme: dark) {
-    .switchLabel {
-        color: #e5e7eb;
-    }
-}
-
+/* Botón del formulario */
 .formButtonBase {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem;
+    padding: 0.8rem 1rem; /* Botón un poco más grande */
     border-radius: 0.5rem;
     color: white;
     font-weight: 600;
     transition: background-color 0.15s ease-in-out;
     border: none;
     cursor: pointer;
+    margin-top: 0.5rem; /* Espacio sobre el botón */
 }
 
 .formButtonEnabled {
@@ -121,29 +124,167 @@
 }
 
 .formButtonDisabled {
-    background-color: #93c5fd;
+    background-color: #60a5fa; /* Azul más claro para deshabilitado */
     cursor: not-allowed;
 }
 
+.formError {
+    color: var(--color-red-error);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+/* --- ✅ REINTRODUCIR/ADAPTAR ESTILOS DE TABLA --- */
+
+/* Contenedor General para las Tablas (Categorías y Usuarios) */
+/* Usaremos .card también para la tabla de usuarios */
+.tableCard { 
+    display: flex;
+    flex-direction: column;
+    padding: 0; /* Quitar padding base, se maneja interno */
+    /* ✅ CAMBIO: Permitir que crezca hasta el límite de la página, pero también se encoja */
+    flex-grow: 1; 
+    flex-shrink: 1;
+    min-height: 0; /* Necesario para shrink en columna */
+    overflow: hidden; /* Ocultar overflow aquí */
+}
+.card.tableCard .cardTitle {
+    padding: 1.5rem; /* Restaurar padding para el título */
+     margin-bottom: 0; /* Quitar margen inferior si el wrapper tiene el suyo */
+}
+
+
+/* Wrapper para hacer scroll DENTRO de la tarjeta */
+.tableWrapper {
+    /* ✅ CAMBIO: Altura máxima definida FIJA para controlar el scroll */
+    max-height: 335px; /* Ajusta esta altura como necesites */
+    overflow-y: auto;  
+    position: relative; /* Para sticky header */
+    /* ✅ CAMBIO: Padding solo horizontal y abajo */
+    padding: 0 1.5rem 1.5rem 1.5rem; 
+    border-top: none; 
+    min-height: 0; 
+     /* Quitar borde y radius de aquí si .tableCard ya lo tiene */
+    /* border: 1px solid #4b5563; */
+    /* border-radius: 0.5rem; */
+}
+/* Estilos de la tabla interna */
+.tableWrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Encabezado de la tabla */
+.tableHeader th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 0.75rem 1.5rem; /* Ajustar padding si se quitó del contenedor */
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: #4b5563; /* Gris medio */
+    color: #d1d5db; /* Gris claro */
+    border-bottom: 1px solid #374151;
+}
+
+/* Filas de la tabla */
+.tableRow {
+    border-bottom: none; 
+}
+.tableRow:nth-child(odd) {
+    background-color: #374151; 
+}
+.tableRow:nth-child(even) {
+    background-color: #4b5563; 
+}
+
+/* Celdas de datos */
+.tableDataCell {
+    padding: 1rem 1.5rem; /* Ajustar padding si se quitó del contenedor */
+    font-size: 0.875rem;
+    white-space: nowrap;
+    text-align: left; 
+    border-top: 1px solid #4b5563;
+    color: #d1d5db; /* Color de texto por defecto */
+}
+.tableRow:first-child .tableDataCell {
+    border-top: none;
+}
+
+/* Texto primario y secundario (si se usan) */
+.dataPrimary {
+    color: #f3f4f6; 
+    font-weight: 500;
+}
+.dataSecondary {
+    color: #9ca3af; 
+}
+
+
+/* Estilos para Select y Botones dentro de la tabla */
+.tableSelect {
+    padding: 0.5rem 2.5rem 0.5rem 0.75rem; 
+    border: 1px solid #6b7280; 
+    border-radius: 0.5rem; 
+    background-color: #4b5563; 
+    color: white; 
+    font-size: 0.875rem; 
+    font-weight: 500;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 20 20'%3E%3Cpath d='M10 12l-6-6h12l-6 6z'/%3E%3C/svg%3E"); 
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center; 
+    background-size: 0.8em; 
+}
+.tableSelect:focus {
+    outline: 2px solid var(--color-primary-blue);
+    border-color: var(--color-primary-blue);
+}
+.tableSelect:focus-visible {
+    background-color: #4b5563;
+}
+
+
+/* Botón/Enlace de acción en tabla (Activar/Desactivar) */
 .tableActionLink {
     color: var(--color-primary-blue);
     cursor: pointer;
     text-decoration: none;
     background: none;
     border: none;
+    font-weight: 500; /* Coincidir con texto primario */
+    padding: 0; /* Quitar padding extra */
 }
-
 .tableActionLink:hover {
     color: var(--color-primary-blue-hover);
+    text-decoration: underline; /* Subrayar al pasar el cursor */
 }
 
+/* Botón de eliminar en tabla */
 .tableDeleteButton {
-    color: #dc2626;
+    color: #f87171; /* Rojo más brillante */
     border: none;
     background: none;
     cursor: pointer;
+    font-weight: 500; /* Coincidir con texto primario */
+    padding: 0; /* Quitar padding extra */
+}
+.tableDeleteButton:hover {
+    color: #ef4444; /* Rojo estándar */
+    text-decoration: underline;
 }
 
-.tableDeleteButton:hover {
-    color: #991b1b;
+/* Contenedor específico para la tabla de usuarios (para aplicar grid-column y animación) */
+.userTableContainer {
+     grid-column: span 2 / span 2; /* Ocupa todo el ancho inferior */
+     margin-top: 1.5rem; /* Espacio sobre esta tabla */
+     /* Hereda estilos de .card */
+     /* ✨ NUEVO: Añadir retraso de animación */
+     opacity: 0;
+     animation: fadeInUp 0.5s ease-out 0.3s forwards; /* Retraso 0.3s */
 }

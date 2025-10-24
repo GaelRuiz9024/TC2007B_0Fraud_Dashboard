@@ -1,0 +1,78 @@
+/* Estilos similares al overlay de NotificationCard */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6); /* Un poco más oscuro para énfasis */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+/* Estilos de la tarjeta modal */
+.modalCard {
+  background-color: #374151; 
+  color: #f3f4f6; 
+  /* ✨ CAMBIO: Aumentar padding para más espacio interno */
+  padding: 2rem; 
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* ✨ CAMBIO: Aumentar ancho máximo */
+  max-width: 500px; /* Era 450px */
+  min-width: 320px; /* Un poco más de ancho mínimo */
+  text-align: center;
+  border: 1px solid #4b5563; 
+}
+/* Estilo del mensaje */
+.message {
+  margin: 0 0 2rem 0; /* ✨ CAMBIO: Más espacio debajo del mensaje */
+  font-size: 1.15rem; /* ✨ CAMBIO: Ligeramente más grande */
+  font-weight: 500;
+  line-height: 1.7; /* ✨ CAMBIO: Mejorar espaciado entre líneas */
+}
+/* Contenedor de botones */
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end; /* Alinear botones a la derecha */
+  gap: 1rem; /* Espacio entre botones */
+}
+
+/* Estilo base de los botones */
+.button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  font-size: 0.9rem;
+}
+
+/* Botón de Cancelar */
+.cancelButton {
+  background-color: #6b7280; /* Gris */
+  color: #f3f4f6;
+}
+
+.cancelButton:hover {
+  background-color: #4b5563;
+}
+
+/* Botón de Confirmar */
+.confirmButton {
+  background-color: var(--color-primary-blue); /* Azul primario */
+  color: white;
+}
+
+.confirmButton:hover {
+  background-color: var(--color-primary-blue-hover);
+}
+
+.button:focus-visible {
+    outline: 2px solid #93c5fd; /* Outline azul claro al enfocar */
+    outline-offset: 2px;
+}
