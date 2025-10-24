@@ -5,7 +5,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import styles from './reports.module.css';
 import { api } from '@/lib/api';
 import { Report } from '@/lib/types'; 
-// 👈 Importar el componente Switch
 import SwitchComponent from '@/components/switch/Switch'; 
 
 const REPORT_STATUSES = ['Pendiente', 'Aprobado', 'Rechazado'];
@@ -15,7 +14,6 @@ interface ReportFilters {
     id: string;
     categoria: string;
     url: string;
-    // 👈 NUEVO FILTRO
     showAllStatuses: boolean; 
 }
 
@@ -187,7 +185,7 @@ export default function ReportsPage() {
                 <thead className={styles.tableHeader}>
                     {/* Se aplica la clase de sticky header para que se mantenga visible */}
                     <tr className={styles.stickyHeader}> 
-                    {['ID', 'ID Usuario/URL', 'ID Categoría', 'Descripción', 'Estado Actual', 'Acción'].map((header) => (
+                    {['ID', 'ID Usuario/URL', 'ID Categoría', 'Descripción', 'Estado Actual'].map((header) => (
                         <th key={header} className={styles.tableHeaderCell}>{header}</th>
                     ))}
                     </tr>
@@ -205,9 +203,6 @@ export default function ReportsPage() {
                             <td className={`${styles.tableDataCell} ${styles.dataSecondary}`}>{report.idCategoria || 'N/A'}</td>
                             <td className={`${styles.tableDataCell} ${styles.dataSecondary}`} style={{ maxWidth: 300, whiteSpace: 'normal' }}>
                                 {report.descripcion}
-                            </td>
-                            <td className={`${styles.tableDataCell} ${styles.dataSecondary}`}>
-                                {report.estado}
                             </td>
                             <td className={styles.tableDataCell} style={{ textAlign: 'right', fontWeight: 500 }}>
                                 <select 

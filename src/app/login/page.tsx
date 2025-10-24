@@ -60,10 +60,10 @@ export default function LoginPage() {
       <div className={styles.loginCard}>
         <div className={styles.imageContainer}>
           <Image
-            src="/Logo1.png"
+            src="/Logo.jpg"
             alt="Seguridad digital"
             layout="fill"
-            objectFit="cover"
+            objectFit="contain"
             priority
           />
         </div>

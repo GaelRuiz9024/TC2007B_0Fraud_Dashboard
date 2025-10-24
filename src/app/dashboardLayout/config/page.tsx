@@ -227,7 +227,7 @@ export default function ConfigPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead className={reportStyles.tableHeader}>
               <tr>
-                {['Id', 'Correo', 'Nombre', 'Rol', 'Modificar rol', 'Acciones'].map((header) => (
+                {['Id', 'Correo', 'Nombre',  'Modificar rol', 'Acciones'].map((header) => (
                   <th key={header} className={reportStyles.tableHeaderCell}>{header}</th>
                 ))}
               </tr>
@@ -238,7 +238,6 @@ export default function ConfigPage() {
                   <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{user.id}</td>
                   <td className={`${reportStyles.tableDataCell} ${reportStyles.dataPrimary}`}>{user.correo}</td>
                   <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{user.nombre}</td>
-                  <td className={`${reportStyles.tableDataCell} ${reportStyles.dataSecondary}`}>{getRoleName(user.idRol)}</td>
                   <td className={reportStyles.tableDataCell}>
                     <select 
                       className={styles.tableSelect}
